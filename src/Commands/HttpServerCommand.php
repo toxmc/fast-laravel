@@ -112,8 +112,6 @@ class HttpServerCommand extends Command
         $configPath = $basePath . '/config/swoole_http.php';
         $todoList = [
             ['from' => realpath(__DIR__ . '/../../config/swoole_http.php'), 'to' => $configPath, 'mode' => 0644],
-            ['from' => realpath(__DIR__ . '/../../config/swoole_websocket.php'), 'to' => $basePath . '/config/swoole_websocket.php', 'mode' => 0644],
-            ['from' => realpath(__DIR__ . '/../../routes/websocket.php'), 'to' => $basePath . '/routes/websocket.php', 'mode' => 0644],
             ['from' => realpath(__DIR__ . '/../../fast'), 'to' => $basePath . '/fast', 'mode' => 0755, 'link' => true],
         ];
 
