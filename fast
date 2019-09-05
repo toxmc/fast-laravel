@@ -1,0 +1,13 @@
+#!/usr/bin/env php
+<?php
+
+define('BASE_PATH', realpath(__DIR__));
+include BASE_PATH . '/vendor/autoload.php';
+
+$app = new \Inhere\Console\Application([
+    'name' => 'fast laravel',
+    'rootPath' => BASE_PATH
+]);
+
+$app->controller(FastLaravel\Http\Commands\HttpController::class);
+$app->run();

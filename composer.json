@@ -1,0 +1,56 @@
+{
+    "name": "toxmc/fast-laravel",
+    "description": "High performance HTTP server based on Swoole. Make your Laravel applications fast.",
+    "keywords": ["swoole", "laravel", "performance", "http", "server"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "mc",
+            "email": "smalleyes@live.cn"
+        }
+    ],
+    "require": {
+        "php": "^7.1",
+        "illuminate/console": "~5.1",
+        "illuminate/contracts": "~5.1",
+        "illuminate/http": "~5.1",
+        "illuminate/support": "~5.1",
+        "inhere/console": "^3.0",
+        "ext/json": "*"
+    },
+    "require-dev": {
+        "laravel/framework": "5.5.*",
+        "phpunit/phpunit": "^6.1",
+        "mockery/mockery": "~1.0",
+        "codedungeon/phpunit-result-printer": "^0.14.0",
+        "php-mock/php-mock": "^2.0",
+        "swoft/swoole-ide-helper": "^4.3"
+    },
+    "autoload": {
+        "files": [
+            "src/helpers.php"
+        ],
+        "psr-4": {
+            "FastLaravel\\Http\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "FastLaravel\\Http\\Tests\\": "tests",
+            "FastLaravel\\Http\\Tests\\Fixtures\\Laravel\\App\\": "tests/fast/laravel/app"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "FastLaravel\\Http\\LaravelServiceProvider"
+            ],
+            "aliases": {
+                "Server": "FastLaravel\\Http\\Server\\Facades\\Server",
+                "Table": "FastLaravel\\Http\\Server\\Facades\\Table",
+                "Room": "FastLaravel\\Http\\Websocket\\Facades\\Room",
+                "Websocket": "FastLaravel\\Http\\Websocket\\Facades\\Websocket"
+            }
+        }
+    }
+}
