@@ -6,13 +6,6 @@
         "toxmc/fast-laravel":"dev-master"
     },
     ...
-    "repositories": {
-        ...,
-        "1": {
-            "type": "vcs",
-            "url": "git@gitlab.iizhu.com:toxmc/fast-laraval.git"
-        }
-    }
 ```
 
 执行`composer install`
