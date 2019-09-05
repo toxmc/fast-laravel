@@ -211,7 +211,15 @@ class HttpServerCommand extends Command
             ]
         ];
         $config = json_encode($config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        return file_put_contents(base_path('storage/fast_laravel.json'), $config);
+        $filePath = base_path('storage/fast_laravel.json');
+        $ret = file_put_contents($filePath, $config);
+        if ($ret) {
+            $this->info("The configuration file was saved successfully.");
+            $this->info("file path:".$filePath);
+        } else {
+            $this->error("Failed to save the configuration file.");
+        }
+        return $ret;
     }
 
     /**
