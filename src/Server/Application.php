@@ -190,7 +190,7 @@ class Application
         } elseif (ob_get_length()) {
             $obContent = ob_get_contents();
             ob_end_clean();
-            printf($obContent);
+            echo $obContent;
         }
         return $response;
     }
