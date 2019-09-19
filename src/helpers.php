@@ -109,24 +109,37 @@ if (! function_exists('isCoContext')) {
     }
 }
 
+
 if (! function_exists('isWorkerStatus')) {
     /**
      * 当前是否是worker状态
+     * @see https://wiki.swoole.com/wiki/page/424.html
      *
      * @return bool
      */
     function isWorkerStatus(): bool
     {
         $server = app('swoole.server') ?? null;
-
-        if ($server === null) {
-            return false;
-        }
-
         if ($server && \property_exists($server, 'taskworker') && ($server->taskworker === false)) {
             return true;
         }
+        return false;
+    }
+}
 
+if (! function_exists('isTaskWorkerStatus')) {
+    /**
+     * 当前是否是task worker状态
+     * @see https://wiki.swoole.com/wiki/page/424.html
+     *
+     * @return bool
+     */
+    function isTaskWorkerStatus(): bool
+    {
+        $server = app('swoole.server') ?? null;
+        if ($server && \property_exists($server, 'taskworker') && ($server->taskworker === true)) {
+            return true;
+        }
         return false;
     }
 }
