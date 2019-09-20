@@ -174,9 +174,9 @@ class Application
         $isFile = false;
         if ($isStream = $response instanceof StreamedResponse) {
             $response->sendContent();
-        } elseif ($isFile = $response instanceof BinaryFileResponse) {
-            $content = $response->getContent();
         } elseif ($response instanceof SymfonyResponse) {
+            $content = $response->getContent();
+        } elseif (! $isFile = $response instanceof BinaryFileResponse) {
             $content = (string) $response;
         }
         // set ob content to response
