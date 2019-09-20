@@ -20,6 +20,8 @@ class Request
      */
     protected $illuminateRequest;
 
+    protected static $requestInfo = [];
+
     /**
      * Make a request.
      *
@@ -32,6 +34,22 @@ class Request
         list($get, $post, $cookie, $files, $server, $content) = self::toIlluminateParameters($swooleRequest);
 
         return new static($get, $post, $cookie, $files, $server, $content);
+    }
+
+    /**
+     * @param array $requestInfo
+     */
+    public static function setRequestInfo(array $requestInfo)
+    {
+        self::$requestInfo = $requestInfo;
+    }
+
+    /**
+     * @return array
+     */
+    public static function getRequestInfo()
+    {
+        return self::$requestInfo;
     }
 
     /**
@@ -132,7 +150,9 @@ class Request
         $server = self::transformServerParameters($server, $header);
         $content = $request->rawContent();
 
-        return [$get, $post, $cookie, $files, $server, $content];
+        $requestInfo = [$get, $post, $cookie, $files, $server, $content];
+        self::setRequestInfo($requestInfo);
+        return $requestInfo;
     }
 
     /**
