@@ -151,34 +151,38 @@ class Application
             \Swoole\Runtime::enableCoroutine();
         }
         // 检测是否开启ob_output
-        $shouldUseOb = $this->application['config']->get('swoole_http.ob_output', true);
-        $shouldUseOb && ob_start();
+        $this->application['config']->get('swoole_http.ob_output', true) && ob_start();
         $response = $this->kernel()->handle($request);
 
         // 处理debug信息
         $debug = $request->get('debug_print', false);
-        $debugStack = $this->application->make('context.debug')->getAll();
-        if ($debug && $debugStack) {
-            $responseContent = $response->getContent();
-            $responseContentArr = json_decode($responseContent, true);
-            if (is_array($responseContentArr)) {
-                $responseContentArr['debug'] = $debugStack;
-                $responseContent = json_encode($responseContentArr);
-            } else {
-                $responseContent = implode("\n<br /><br />\n", $debugStack) . $responseContent;
-            }
-            $response->setContent($responseContent);
-        }
+        $debugStack = $debug ? $this->application->make('context.debug')->getAll() : [];
 
         $content = '';
         $isFile = false;
         if ($isStream = $response instanceof StreamedResponse) {
             $response->sendContent();
+            $debug && var_export($debugStack);
         } elseif ($isFile = $response instanceof BinaryFileResponse) {
             $content = $response->getContent();
+            $debug && var_export($debugStack);
+        } elseif ($response instanceof RedirectResponse) {
+            $content = $response->getContent();
+            $debug && var_export($debugStack);
+        } elseif ($response instanceof JsonResponse) {
+            $content = $response->getContent();
+            $responseContentArr = json_decode($content, true);
+            if ($debug) {
+                $responseContentArr['debug'] = $debugStack;
+                $content = json_encode($responseContentArr);
+            }
+            $response->setContent($content);
         } elseif ($response instanceof SymfonyResponse) {
-            $content = (string) $response;
+            $content = $response->getContent() ? $response->getContent() : ob_get_contents();
+            $content = $debug ? implode("<br/><br/>", $debugStack) . $content : $content;
+            $response->setContent($content);
         }
+
         // set ob content to response
         if (! $isFile && ! $content && ob_get_length() > 0) {
             if ($isStream) {
