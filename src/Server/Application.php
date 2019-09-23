@@ -181,7 +181,7 @@ class Application
             $response->setContent($content);
         } elseif ($response instanceof SymfonyResponse) {
             $content = $response->getContent();
-            if ($content) {
+            if (!$content) {
                 $content = ob_get_contents();
                 ob_clean();
             }
