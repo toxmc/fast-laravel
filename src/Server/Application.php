@@ -180,7 +180,11 @@ class Application
             }
             $response->setContent($content);
         } elseif ($response instanceof SymfonyResponse) {
-            $content = $response->getContent() ? $response->getContent() : ob_get_contents();
+            $content = $response->getContent();
+            if ($content) {
+                $content = ob_get_contents();
+                ob_clean();
+            }
             $content = $debug ? implode("<br/><br/>", $debugStack) . $content : $content;
             $response->setContent($content);
         }
