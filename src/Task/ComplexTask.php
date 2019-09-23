@@ -5,8 +5,15 @@ namespace FastLaravel\Http\Task;
 use FastLaravel\Http\Util\Facades\Logger;
 use FastLaravel\Http\Exceptions\TaskException;
 use FastLaravel\Http\Task\Helper\TaskHelper;
+use FastLaravel\Http\Context\Request;
 
-class Task implements TaskInterface
+/**
+ * 复杂的task，主要用于实现task中也可以使用worker中的请求信息
+ *
+ * Class ComplexTask
+ * @package FastLaravel\Http\Task
+ */
+class ComplexTask implements TaskInterface
 {
     /**
      * Deliver a taskco or async task
@@ -26,7 +33,7 @@ class Task implements TaskInterface
             throw new TaskException('Invalid task type.');
         }
 
-        $data = TaskHelper::pack($taskName, $methodName, $params, $type);
+        $data = TaskHelper::pack($taskName, $methodName, $params, $type, Request::getRequestInfo());
         if (!isWorkerStatus() && !isCoContext()) {
             return static::deliverByQueue($data);
         }
@@ -67,7 +74,6 @@ class Task implements TaskInterface
     public static function async(array $tasks): array
     {
         $server = app('swoole.server');
-
         $result = [];
         foreach ($tasks as $task) {
             if (! isset($task['name']) || ! isset($task['method']) || ! isset($task['params'])) {
@@ -75,7 +81,7 @@ class Task implements TaskInterface
                 continue;
             }
 
-            $data = TaskHelper::pack($task['name'], $task['method'], $task['params'], static::TYPE_ASYNC);
+            $data = TaskHelper::pack($task['name'], $task['method'], $task['params'], static::TYPE_ASYNC, Request::getRequestInfo());
             $result[] = $server->task($data);
         }
 
@@ -103,7 +109,7 @@ class Task implements TaskInterface
                 continue;
             }
 
-            $taskCos[] = TaskHelper::pack($task['name'], $task['method'], $task['params'], static::TYPE_CO);
+            $taskCos[] = TaskHelper::pack($task['name'], $task['method'], $task['params'], static::TYPE_CO, Request::getRequestInfo());
         }
 
         $result = [];

@@ -4,6 +4,7 @@ namespace FastLaravel\Http\Task;
 
 use FastLaravel\Http\Task\Helper\TaskHelper;
 use FastLaravel\Http\Task\Helper\PhpHelper;
+use FastLaravel\Http\Task\TaskInfo;
 
 /**
  * Class TaskExecutor
@@ -31,17 +32,16 @@ class TaskExecutor
 
     /**
      * 执行任务
-     * @param string $data
+     * @param TaskInfo $taskInfo
      * @return mixed
      */
-    public function run(string $data)
+    public function run(TaskInfo $taskInfo)
     {
-        $data = TaskHelper::unpack($data);
+        $name = $taskInfo->getName();
+        $type = $taskInfo->getType();
+        $method = $taskInfo->getMethod();
+        $params = $taskInfo->getParams();
 
-        $name = ucfirst($data['name']);
-        $type = $data['type'];
-        $method = $data['method'];
-        $params = $data['params'];
         if (strpos($name, ltrim($this->taskSpace, '\\')) !== false) {
             $class = $name;
         } else {

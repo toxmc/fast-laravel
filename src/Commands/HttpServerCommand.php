@@ -110,9 +110,11 @@ class HttpServerCommand extends Command
     {
         $basePath = base_path();
         $configPath = $basePath . '/config/swoole_http.php';
+        $taskMiddlewarePath = $basePath . '/app/Http/Middleware/TaskWorker.php';
         $todoList = [
             ['from' => realpath(__DIR__ . '/../../config/swoole_http.php'), 'to' => $configPath, 'mode' => 0644],
             ['from' => realpath(__DIR__ . '/../../fast'), 'to' => $basePath . '/fast', 'mode' => 0755, 'link' => true],
+            ['from' => realpath(__DIR__ . '/../Middleware/TaskWorker.php'), 'to' => $taskMiddlewarePath, 'mode' => 0755, 'link' => true],
         ];
 
         foreach ($todoList as $id => $todo) {

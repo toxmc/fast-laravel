@@ -14,26 +14,31 @@ class TaskInfo
     /**
      * @var bool
      */
-    private $coroutine = false;
+    private $type = '';
 
     /**
-     * Bean constructor.
-     *
-     * @param array $values
+     * @var bool
      */
-    public function __construct($values=[])
+    private $params = '';
+
+    /**
+     * @var bool
+     */
+    private $method = '';
+
+    /**
+     * TaskInfo constructor.
+     * @param $name
+     * @param $method
+     * @param $params
+     * @param $type
+     */
+    public function __construct($name, $method, $params, $type)
     {
-        if (isset($values['value'])) {
-            $this->name = $values['value'];
-        }
-
-        if (isset($values['name'])) {
-            $this->name = $values['name'];
-        }
-
-        if (isset($values['coroutine'])) {
-            $this->coroutine = $values['coroutine'];
-        }
+        $this->name = $name;
+        $this->method = $method;
+        $this->params = $params;
+        $this->type = $type;
     }
 
     /**
@@ -46,12 +51,18 @@ class TaskInfo
         return $this->name;
     }
 
-    /**
-     * @return bool
-     */
-    public function isCoroutine(): bool
+    public function getMethod()
     {
-        return $this->coroutine;
+        return $this->method;
     }
 
+    public function getParams()
+    {
+        return $this->params;
+    }
+
+    public function getType()
+    {
+        return $this->type;
+    }
 }

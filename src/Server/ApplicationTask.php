@@ -6,8 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Facade;
-use Symfony\Component\HttpFoundation\StreamedResponse;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class ApplicationTask
@@ -65,6 +63,7 @@ class ApplicationTask
      *
      * @param string $framework
      * @param string $basePath
+     * @throws
      */
     public function __construct($framework, $basePath = null)
     {
@@ -119,6 +118,16 @@ class ApplicationTask
     {
         if (! $this->kernel instanceof Kernel) {
             $this->kernel = $this->getApplication()->make(Kernel::class);
+            // 绑定TaskWorker中间件
+            $closure = function () {
+                $middleware = 'App\Http\Middleware\TaskWorker';
+                if (class_exists($middleware)) {
+                    $this->middleware = array_merge($this->middleware, [$middleware]);
+                }
+                return $this->middleware;
+            };
+            $variable = $closure->bindTo($this->kernel, $this->kernel);
+            $variable();
         }
 
         return $this->kernel;
@@ -136,9 +145,10 @@ class ApplicationTask
      * Run framework.
      *
      * @param \Illuminate\Http\Request $request
+     * @throws
      * @return SymfonyResponse
      */
-    public function run(Request $request)
+    public function handle(Request $request)
     {
         // handle request with laravel (runLaravel)
         $response = $this->getKernel()->handle($request);
@@ -151,6 +161,7 @@ class ApplicationTask
     /**
      * Get bootstrappers.
      *
+     * @throws
      * @return array
      */
     protected function getBootstrappers()

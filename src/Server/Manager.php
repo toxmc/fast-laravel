@@ -8,6 +8,7 @@ use Swoole\WebSocket\Server as WebSocketServer;
 use FastLaravel\Http\Task\TaskExecutor;
 use FastLaravel\Http\Traits\{Logger,TableTrait};
 use FastLaravel\Http\Context\Request;
+use FastLaravel\Http\Context\TaskRequest;
 use FastLaravel\Http\Context\Response;
 use FastLaravel\Http\Context\Debug;
 use FastLaravel\Http\Process\HotReload;
@@ -334,10 +335,18 @@ class Manager
     public function onTask(HttpServer $server, $taskId, $srcWorkerId, $data)
     {
         try {
+            // transform swoole request to illuminate request
+            $taskRequest = TaskRequest::make($data);
+            if ($taskRequest->isComplexTask()) {
+                $illuminateRequest = $taskRequest->toIlluminate();
+                $this->getApplication()->handle($illuminateRequest);
+            }
+
+            $taskInfo = $taskRequest->getTaskInfo();
             $taskExecutor = $this->app->instance('task.executor', new TaskExecutor(
                 app('config')->get('swoole_http.task_space')
             ));
-            $result = $taskExecutor->run($data);
+            $result = $taskExecutor->run($taskInfo);
         } catch (Exception $e) {
             $this->warning($e->getMessage());
             $this->warning($e->getTraceAsString());

@@ -6,50 +6,46 @@ use Swoole\Http\Request as SwooleRequest;
 use Illuminate\Http\Request as IlluminateRequest;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
+use FastLaravel\Http\Task\Helper\TaskHelper;
+use FastLaravel\Http\Task\TaskInfo;
 
 /**
- * Class Request
+ * Class TaskRequest
  * Translate Swoole\Http\Request to Illuminate\Http\Request
  *
  * @package FastLaravel\Http\Context
  */
-class Request
+class TaskRequest
 {
     /**
      * @var IlluminateRequest
      */
     protected $illuminateRequest;
 
-    protected static $requestInfo = [];
+    protected $taskInfo = null;
+
+    protected $isComplexTask = false;
 
     /**
      * Make a request.
      *
-     * @param SwooleRequest $swooleRequest
+     * @param string $taskRequest
      *
-     * @return Request
+     * @return TaskRequest
      */
-    public static function make(SwooleRequest $swooleRequest)
+    public static function make(string $taskRequest)
     {
-        list($get, $post, $cookie, $files, $server, $content) = self::toIlluminateParameters($swooleRequest);
-
-        return new static($get, $post, $cookie, $files, $server, $content);
-    }
-
-    /**
-     * @param array $requestInfo
-     */
-    public static function setRequestInfo(array $requestInfo)
-    {
-        self::$requestInfo = $requestInfo;
-    }
-
-    /**
-     * @return array
-     */
-    public static function getRequestInfo()
-    {
-        return self::$requestInfo;
+        $data = TaskHelper::unpack($taskRequest);
+        if ($data['request_info']) {
+            list($get, $post, $cookie, $files, $server, $content) = $data['request_info'];
+            unset($data['request_info']);
+            $taskRequest = new static($get, $post, $cookie, $files, $server, $content, $data);
+            $taskRequest->isComplexTask = true;
+        } else {
+            $taskRequest = new static([], [], [], [], [], [], $data);
+            $taskRequest->isComplexTask = false;
+        }
+        return $taskRequest;
     }
 
     /**
@@ -61,11 +57,40 @@ class Request
      * @param array $files
      * @param array $server
      * @param string $content
+     * @param array $data
      * @throws \LogicException
      */
-    public function __construct(array $get, array $post, array $cookie, array $files, array $server, $content = null)
+    public function __construct(array $get, array $post, array $cookie, array $files, array $server, $content = null, $data)
     {
         $this->createIlluminateRequest($get, $post, $cookie, $files, $server, $content);
+        $this->createTaskInfo(ucfirst($data['name']), $data['method'], $data['params'], $data['type']);
+    }
+
+    /**
+     * @param $name
+     * @param $type
+     * @param $method
+     * @param $params
+     */
+    public function createTaskInfo($name, $method, $params, $type)
+    {
+        $this->taskInfo = new TaskInfo($name, $method, $params, $type);
+    }
+
+    /**
+     * @return TaskInfo
+     */
+    public function getTaskInfo()
+    {
+        return $this->taskInfo;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isComplexTask()
+    {
+        return $this->isComplexTask;
     }
 
     /**
@@ -150,9 +175,7 @@ class Request
         $server = self::transformServerParameters($server, $header);
         $content = $request->rawContent();
 
-        $requestInfo = [$get, $post, $cookie, $files, $server, $content];
-        self::setRequestInfo($requestInfo);
-        return $requestInfo;
+        return [$get, $post, $cookie, $files, $server, $content];
     }
 
     /**
