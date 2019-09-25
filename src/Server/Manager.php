@@ -4,8 +4,6 @@ namespace FastLaravel\Http\Server;
 
 use Exception;
 use Swoole\Http\Server as HttpServer;
-use Swoole\WebSocket\Server as WebSocketServer;
-use FastLaravel\Http\Task\TaskExecutor;
 use FastLaravel\Http\Traits\{Logger,TableTrait};
 use FastLaravel\Http\Context\Request;
 use FastLaravel\Http\Context\TaskRequest;
@@ -13,7 +11,6 @@ use FastLaravel\Http\Context\Response;
 use FastLaravel\Http\Context\Debug;
 use FastLaravel\Http\Process\HotReload;
 use FastLaravel\Http\Database\ConnectionResolver;
-use Illuminate\Support\Facades\Facade;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 
@@ -335,18 +332,9 @@ class Manager
     public function onTask(HttpServer $server, $taskId, $srcWorkerId, $data)
     {
         try {
-            // transform swoole request to illuminate request
+            // transform swoole task data to illuminate request
             $taskRequest = TaskRequest::make($data);
-            if ($taskRequest->isComplexTask()) {
-                $illuminateRequest = $taskRequest->toIlluminate();
-                $this->getApplication()->handle($illuminateRequest);
-            }
-
-            $taskInfo = $taskRequest->getTaskInfo();
-            $taskExecutor = $this->app->instance('task.executor', new TaskExecutor(
-                app('config')->get('swoole_http.task_space')
-            ));
-            $result = $taskExecutor->run($taskInfo);
+            $result = $this->getApplication()->handle($taskRequest);
         } catch (Exception $e) {
             $this->warning($e->getMessage());
             $this->warning($e->getTraceAsString());

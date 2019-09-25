@@ -17,16 +17,21 @@ class TaskHelperTest extends TestCase
     {
         $taskName = 'test';
         $methodName = 'foo';
-        $params = ['1','3'];
+        $params = [
+            '1',
+            '3'
+        ];
         $type = Task::TYPE_CO;
+        $requestInfo = ['test' => 'test'];
 
         $this->task = [
-            'name'   => $taskName,
-            'method' => $methodName,
-            'params' => $params,
-            'type'   => $type,
+            'name'         => $taskName,
+            'method'       => $methodName,
+            'params'       => $params,
+            'type'         => $type,
+            'request_info' => $requestInfo
         ];
-        $this->taskData = TaskHelper::pack($taskName, $methodName, $params, $type);
+        $this->taskData = TaskHelper::pack($taskName, $methodName, $params, $type, $requestInfo);
     }
 
     public function testPack()

@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Facade;
+use FastLaravel\Http\Context\TaskRequest;
+use FastLaravel\Http\Task\TaskExecutor;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class ApplicationTask
@@ -113,16 +115,18 @@ class ApplicationTask
 
     /**
      * @return \Illuminate\Contracts\Http\Kernel
+     * @throws
      */
     public function getKernel()
     {
         if (! $this->kernel instanceof Kernel) {
             $this->kernel = $this->getApplication()->make(Kernel::class);
-            // 绑定TaskWorker中间件
+            // clean worker middleware，and bind TaskWorker middleware.
             $closure = function () {
+                $this->middleware = [];
                 $middleware = 'App\Http\Middleware\TaskWorker';
                 if (class_exists($middleware)) {
-                    $this->middleware = array_merge($this->middleware, [$middleware]);
+                    $this->middleware = [$middleware];
                 }
                 return $this->middleware;
             };
@@ -144,25 +148,30 @@ class ApplicationTask
     /**
      * Run framework.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param \FastLaravel\Http\Context\TaskRequest $taskRequest
      * @throws
      * @return SymfonyResponse
      */
-    public function handle(Request $request)
+    public function handle(TaskRequest $taskRequest)
     {
-        // handle request with laravel (runLaravel)
-        $response = $this->getKernel()->handle($request);
+        if ($taskRequest->isComplexTask()) {
+            $request = $taskRequest->toIlluminate();
+            $response = $this->getKernel()->handle($request);
 
-        // 处理终止逻辑
-        $this->terminate($request, $response);
-        return $response;
+            $this->terminate($request, $response);
+        }
+        $taskInfo = $taskRequest->getTaskInfo();
+        $taskExecutor = $this->getApplication()->instance(TaskExecutor::class, new TaskExecutor(
+            app('config')->get('swoole_http.task_space')
+        ));
+        return $taskExecutor->run($taskInfo);
     }
 
     /**
      * Get bootstrappers.
      *
-     * @throws
      * @return array
+     * @throws
      */
     protected function getBootstrappers()
     {
