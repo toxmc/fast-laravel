@@ -1,6 +1,6 @@
 <?php
 
-namespace FastLaravel\Http\Server\Facades;
+namespace FastLaravel\Http\Facade\Swoole;
 
 use Illuminate\Support\Facades\Facade;
 

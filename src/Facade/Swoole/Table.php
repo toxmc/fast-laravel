@@ -1,10 +1,10 @@
 <?php
 
-namespace FastLaravel\Http\Table\Facades;
+namespace FastLaravel\Http\Facade\Swoole;
 
 use Illuminate\Support\Facades\Facade;
 
-class SwooleTable extends Facade
+class Table extends Facade
 {
     /**
      * Get the registered name of the component.
