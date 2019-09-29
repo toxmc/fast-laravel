@@ -19,6 +19,17 @@ class TableTest extends TestCase
         $this->assertSame($table, $swooleTable->get($name));
     }
 
+    public function testDel()
+    {
+        $table = m::mock(Table::class);
+
+        $swooleTable = new SwooleTable();
+        $swooleTable->add($name = 'foo', $table);
+        $this->assertSame($table, $swooleTable->get($name));
+        $swooleTable->del($name);
+        $this->assertSame(null, $swooleTable->get($name));
+    }
+
     public function testGetAll()
     {
         $table = m::mock(Table::class);
@@ -28,6 +39,7 @@ class TableTest extends TestCase
         $swooleTable->add($bar = 'bar', $table);
 
         $this->assertSame(2, count($swooleTable->getAll()));
+        $this->assertSame(2, $swooleTable->count());
         $this->assertSame($table, $swooleTable->getAll()[$foo]);
         $this->assertSame($table, $swooleTable->getAll()[$bar]);
     }
