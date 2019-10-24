@@ -127,21 +127,27 @@ class HttpController extends Controller
     /**
      * Stop fast-laravel server
      *
-     * @example php fast http:stop
+     * @usage {command} [--opt ...]
+     * @options
+     *  -f, --force  Whether force kill process.
+     *
+     * @example php fast http:stop [-f or --force]
      */
     public function stopCommand()
     {
-        $pid = $this->getPid();
+        $sig = SIGTERM;
+        if ($this->input->getOpt('f') || $this->input->getLongOpt('force')) {
+            $sig = SIGKILL;
+        }
 
+        $pid = $this->getPid();
         if (!$this->isRunning($pid)) {
             $this->output->error("> Failed! There is no swoole_http_server process running.");
             exit(1);
         }
-
         $this->output->info('> Stopping swoole http server...');
 
-        $isRunning = $this->killProcess($pid, SIGTERM, 15);
-
+        $isRunning = $this->killProcess($pid, $sig, 15);
         if ($isRunning) {
             $this->output->error('> Unable to stop the swoole_http_server process.');
             exit(1);
@@ -154,7 +160,11 @@ class HttpController extends Controller
     /**
      * Restart fast-laravel server
      *
-     * @example php fast http:restart
+     * @usage {command} [--opt ...]
+     * @options
+     *  -f, --force  Whether force kill process.
+     *
+     * @example php fast http:stop [-f or --force]
      */
     public function restartCommand()
     {

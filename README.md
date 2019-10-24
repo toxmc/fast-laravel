@@ -15,12 +15,12 @@ first you mush install [composer](https://getcomposer.org/)
 add require info into composer.json and execute `composer install`
 ```
 "require": {
-    "toxmc/fast-laravel":"dev-master"
+    "toxmc/fast-laravel":"^1.0"
 },
 ```
 or
 ```bash
-composer require "toxmc/fast-laravel:dev-master" -vvv
+composer require "toxmc/fast-laravel" -vvv
 ```
 
 add `Service Provider` into `config/app.php`

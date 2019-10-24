@@ -30,6 +30,25 @@ class HotReload extends BaseProcess
     protected $firstScan = true;
 
     /**
+     * @var null
+     */
+    protected $inotifyFd = null;
+
+    /**
+     * inotify reload lock
+     *
+     * @var int
+     */
+    protected $inotifyReloadLock = 0;
+
+    /**
+     * inotify file mask
+     * @see https://www.php.net/manual/en/inotify.constants.php
+     * @var int
+     */
+    protected $inotifyFileMask = IN_MODIFY | IN_CREATE | IN_IGNORED | IN_DELETE | IN_MOVE;
+
+    /**
      * 启动定时器进行循环扫描
      *
      * @param Process $process
@@ -52,7 +71,7 @@ class HotReload extends BaseProcess
     }
 
     /**
-     * 扫描文件变更
+     * 定时器定时扫描文件变更
      */
     private function runComparison()
     {
@@ -102,55 +121,85 @@ class HotReload extends BaseProcess
     }
 
     /**
-     * 监控目录
+     * inotify 扩展方式监控目录
      */
     public function inotify()
     {
-        $this->inotifyFd = inotify_init();
+        $wdConstants = array(
+            1 => array('IN_ACCESS','File was accessed (read)'),
+            2 => array('IN_MODIFY','File was modified'),
+            4 => array('IN_ATTRIB','Metadata changed (e.g. permissions, mtime, etc.)'),
+            8 => array('IN_CLOSE_WRITE','File opened for writing was closed'),
+            16 => array('IN_CLOSE_NOWRITE','File not opened for writing was closed'),
+            32 => array('IN_OPEN','File was opened'),
+            128 => array('IN_MOVED_TO','File moved into watched directory'),
+            64 => array('IN_MOVED_FROM','File moved out of watched directory'),
+            256 => array('IN_CREATE','File or directory created in watched directory'),
+            512 => array('IN_DELETE','File or directory deleted in watched directory'),
+            1024 => array('IN_DELETE_SELF','Watched file or directory was deleted'),
+            2048 => array('IN_MOVE_SELF','Watch file or directory was moved'),
+            24 => array('IN_CLOSE','Equals to IN_CLOSE_WRITE | IN_CLOSE_NOWRITE'),
+            192 => array('IN_MOVE','Equals to IN_MOVED_FROM | IN_MOVED_TO'),
+            4095 => array('IN_ALL_EVENTS','Bitmask of all the above constants'),
+            8192 => array('IN_UNMOUNT','File system containing watched object was unmounted'),
+            16384 => array('IN_Q_OVERFLOW','Event queue overflowed (wd is -1 for this event)'),
+            32768 => array('IN_IGNORED','Watch was removed (explicitly by inotify_rm_watch() or because file was removed or filesystem unmounted'),
+            1073741824 => array('IN_ISDIR','Subject of this event is a directory'),
+            1073741840 => array('IN_CLOSE_NOWRITE','High-bit: File not opened for writing was closed'),
+            1073741856 => array('IN_OPEN','High-bit: File was opened'),
+            1073742080 => array('IN_CREATE','High-bit: File or directory created in watched directory'),
+            1073742336 => array('IN_DELETE','High-bit: File or directory deleted in watched directory'),
+            16777216 => array('IN_ONLYDIR','Only watch pathname if it is a directory (Since Linux 2.6.15)'),
+            33554432 => array('IN_DONT_FOLLOW','Do not dereference pathname if it is a symlink (Since Linux 2.6.15)'),
+            536870912 => array('IN_MASK_ADD','Add events to watch mask for this pathname if it already exists (instead of replacing mask).'),
+            2147483648 => array('IN_ONESHOT','Monitor pathname for one event, then remove from watch list.')
+        );
 
+        $this->inotifyFd = inotify_init();
         stream_set_blocking($this->inotifyFd, 0);
+
         $dirIterator = new \RecursiveDirectoryIterator(app_path());
         $iterator = new \RecursiveIteratorIterator($dirIterator);
-        $monitorFiles = [];
-        $tempFiles = [];
 
+        $tempFiles = $monitorFiles = [];
         foreach ($iterator as $file) {
             $fileInfo = pathinfo($file);
-
             if (!isset($fileInfo['extension']) || $fileInfo['extension'] != 'php') {
                 continue;
             }
-
             //改为监听目录
             $dirPath = $fileInfo['dirname'];
             if (!isset($tempFiles[$dirPath])) {
-                $wd = inotify_add_watch($this->inotifyFd, $fileInfo['dirname'], IN_MODIFY | IN_CREATE | IN_IGNORED | IN_DELETE);
+                $wd = inotify_add_watch($this->inotifyFd, $fileInfo['dirname'], $this->inotifyFileMask);
                 $tempFiles[$dirPath] = $wd;
                 $monitorFiles[$wd] = $dirPath;
             }
         }
+        unset($tempFiles);
 
-        $tempFiles = null;
-
-        swoole_event_add($this->inotifyFd, function ($inotifyFd) use (&$monitorFiles) {
+        swoole_event_add($this->inotifyFd, function ($inotifyFd) use (&$monitorFiles, $wdConstants) {
             $events = inotify_read($inotifyFd);
-            $flag = true;
+            $flag = false;
             foreach ($events as $ev) {
                 if (pathinfo($ev['name'], PATHINFO_EXTENSION) != 'php') {
-                    //创建目录添加监听
+                    // inotify 只能监听单层目录，所以子目录变化也需要加入监听
                     if ($ev['mask'] == 1073742080) {
                         $path = $monitorFiles[$ev['wd']] . '/' . $ev['name'];
-
-                        $wd = inotify_add_watch($inotifyFd, $path, IN_MODIFY | IN_CREATE | IN_IGNORED | IN_DELETE);
+                        $wd = inotify_add_watch($inotifyFd, $path, $this->inotifyFileMask);
                         $monitorFiles[$wd] = $path;
                     }
-                    $flag = false;
                     continue;
+                } else {
+                    $flag = true;
+                    $msg = $wdConstants[$ev['mask']][1] ?? 'has been modified.';
+                    output()->writeln('File:<magenta>' . $monitorFiles[$ev['wd']] . '/' . $ev['name'] . '</magenta> '. $msg . '.');
                 }
-                output()->writeln('File:<magenta>' . $monitorFiles[$ev['wd']] . '/' . $ev['name'] . '</magenta> has been modified.');
             }
-            if ($flag == true) {
-                $this->reloadServer();
+            if ($flag == true && !$this->inotifyReloadLock) {
+                $this->inotifyReloadLock = Timer::after(1000, function () {
+                    $this->reloadServer();
+                    $this->inotifyReloadLock = 0;
+                });
             }
         }, null, SWOOLE_EVENT_READ);
     }
