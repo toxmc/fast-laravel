@@ -46,7 +46,7 @@ class HotReload extends BaseProcess
      * @see https://www.php.net/manual/en/inotify.constants.php
      * @var int
      */
-    protected $inotifyFileMask = IN_MODIFY | IN_CREATE | IN_IGNORED | IN_DELETE | IN_MOVE;
+    protected $inotifyFileMask = null;
 
     /**
      * 启动定时器进行循环扫描
@@ -60,6 +60,7 @@ class HotReload extends BaseProcess
         // 扩展可用 优先使用扩展进行处理,不可用通过tick定时检查方式
         sleep(1);
         if (extension_loaded('inotify')) {
+            $this->inotifyFileMask = IN_MODIFY | IN_CREATE | IN_IGNORED | IN_DELETE | IN_MOVE;
             $this->inotify();
             output()->writeln("starting hot reload: use inotify");
         } else {
