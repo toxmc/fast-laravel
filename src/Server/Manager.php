@@ -162,15 +162,15 @@ class Manager
     protected function createServer()
     {
         $serverClass = HttpServer::class;
-        $host = $this->container['config']->get('swoole_http.server.host');
-        $port = $this->container['config']->get('swoole_http.server.port');
-        $hasCert = $this->container['config']->get('swoole_http.server.options.ssl_cert_file');
-        $hasKey = $this->container['config']->get('swoole_http.server.options.ssl_key_file');
+        $config = $this->container->make('config');
+        $host = $config->get('swoole_http.server.host');
+        $port = $config->get('swoole_http.server.port');
+        $hasCert = $config->get('swoole_http.server.options.ssl_cert_file');
+        $hasKey = $config->get('swoole_http.server.options.ssl_key_file');
         $args = $hasCert && $hasKey ? [SWOOLE_PROCESS, SWOOLE_SOCK_TCP | SWOOLE_SSL] : [];
 
         self::$server = new $serverClass($host, $port, ...$args);
-
-        if ($this->container['config']->get('swoole_http.server.hot_reload', false)) {
+        if ($config->get('swoole_http.server.hot_reload', false)) {
             self::$server->addProcess((new HotReload('HotReload'))->getProcess());
         }
     }
@@ -180,8 +180,7 @@ class Manager
      */
     protected function configureServer()
     {
-        $config = $this->container['config']->get('swoole_http.server.options');
-        self::$server->set($config);
+        self::$server->set($this->container->make('config')->get('swoole_http.server.options'));
     }
 
     /**
@@ -273,6 +272,7 @@ class Manager
      *
      * @param \Swoole\Http\Request $swooleRequest
      * @param \Swoole\Http\Response $swooleResponse
+     * @throws
      */
     public function onRequest($swooleRequest, $swooleResponse)
     {
@@ -281,7 +281,7 @@ class Manager
 
         try {
             // handle static file request first
-            $handleStatic = $this->container['config']->get('swoole_http.handle_static_files', true);
+            $handleStatic = $this->container->make('config')->get('swoole_http.handle_static_files', true);
             if ($handleStatic && $this->handleStaticRequest($illuminateRequest, $swooleResponse)) {
                 return;
             }
@@ -309,7 +309,7 @@ class Manager
             }
         } finally {
             // request's access log
-            if ($this->container['config']->get('swoole_http.server.enable_access_log', false)) {
+            if ($this->container->make('config')->get('swoole_http.server.enable_access_log', false)) {
                 $this->accessOutput->log($illuminateRequest, $illuminateResponse ?? null);
             }
             // disable and recycle sandbox resource
@@ -376,7 +376,7 @@ class Manager
      *
      * @param \Illuminate\Http\Request $illuminateRequest
      * @param \Swoole\Http\Response $swooleResponse
-     *
+     * @throws
      * @return boolean
      */
     protected function handleStaticRequest($illuminateRequest, $swooleResponse)
@@ -388,7 +388,7 @@ class Manager
             return;
         }
 
-        $publicPath = $this->container['config']->get('swoole_http.server.public_path', base_path('public'));
+        $publicPath = $this->container->make('config')->get('swoole_http.server.public_path', base_path('public'));
         $filename = $publicPath . $uri;
 
         if (! is_file($filename) || filesize($filename) === 0) {
@@ -560,13 +560,14 @@ class Manager
      * Set process name.
      *
      * @param string $process
+     * @throws
      */
     protected function setProcessName($process)
     {
         if (PHP_OS === static::MAC_OSX) {
             return;
         }
-        $appName = $this->container['config']->get('app.name', 'fast_laravel');
+        $appName = $this->container->make('config')->get('app.name', 'fast_laravel');
         $name = sprintf('%s: %s', $appName, $process);
         swoole_set_process_name($name);
     }
