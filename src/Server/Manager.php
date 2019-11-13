@@ -161,7 +161,6 @@ class Manager
      */
     protected function createServer()
     {
-        $serverClass = HttpServer::class;
         $config = $this->container->make('config');
         $host = $config->get('swoole_http.server.host');
         $port = $config->get('swoole_http.server.port');
@@ -169,9 +168,13 @@ class Manager
         $hasKey = $config->get('swoole_http.server.options.ssl_key_file');
         $args = $hasCert && $hasKey ? [SWOOLE_PROCESS, SWOOLE_SOCK_TCP | SWOOLE_SSL] : [];
 
-        self::$server = new $serverClass($host, $port, ...$args);
+        self::$server = new HttpServer($host, $port, ...$args);
         if ($config->get('swoole_http.server.hot_reload', false)) {
-            self::$server->addProcess((new HotReload('HotReload'))->getProcess());
+            self::$server->addProcess((new HotReload(
+                'HotReload', [
+                    'hot_reload_type' => $config->get('swoole_http.server.hot_reload_type', '')
+                ]
+            ))->getProcess());
         }
     }
 

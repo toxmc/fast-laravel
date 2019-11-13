@@ -18,6 +18,7 @@ return [
         // Determine if to use swoole to respond request for static files
         'handle_static_files' => env('SWOOLE_HANDLE_STATIC', true),
         'hot_reload'          => env('SWOOLE_HOT_RELOAD', false),
+        'hot_reload_type'     => env('SWOOLE_HOT_RELOAD_TYPE', ''),// inotify or tick
         'enable_coroutine'    => env('SWOOLE_RUNTIME_ENABLE_COROUTINE', false),
         'enable_access_log'   => env('SWOOLE_ENABLE_ACCESS_LOG', false),
         'options' => [

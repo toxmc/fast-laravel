@@ -49,6 +49,15 @@ class HotReload extends BaseProcess
     protected $inotifyFileMask = null;
 
     /**
+     * 支持的reload方式
+     * @var array
+     */
+    protected $supportReloadTypes = [
+        'tick',
+        'inotify'
+    ];
+
+    /**
      * 启动定时器进行循环扫描
      *
      * @param Process $process
@@ -59,7 +68,14 @@ class HotReload extends BaseProcess
     {
         // 扩展可用 优先使用扩展进行处理,不可用通过tick定时检查方式
         sleep(1);
-        if (extension_loaded('inotify')) {
+        $type = $this->getArg('hot_reload_type');
+        if ($type && !in_array($type, $this->supportReloadTypes)) {
+            output()->writeln("<red>Hot reload type error.</red>");
+            $supportTypes = trim(implode('|', $this->supportReloadTypes), '|');
+            output()->writeln("<red>Only the following types ({$supportTypes}) are supported. '{$type}' you used.</red>");
+            $type = "";
+        }
+        if (extension_loaded('inotify') && (!$type || $type == 'inotify')) {
             $this->inotifyFileMask = IN_MODIFY | IN_CREATE | IN_IGNORED | IN_DELETE | IN_MOVE;
             $this->inotify();
             output()->writeln("starting hot reload: use inotify");
