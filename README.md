@@ -94,7 +94,27 @@ supervisor> status
 fast-laravel-monitor             RUNNING   pid 29146, uptime 3:03:36
 ```
 
-#### hot reload（mac）
+#### docker
+Windows Docker Desktop with WSL1's docker client. 
+
+Docker Fedora 31, CPUs:4, Memory:4G.
+```
+docker build -t=fast-laravel dockerfiles
+docker run --rm -p 9100:9100 -d fast-laravel:latest
+docker exec -it `docker ps -q` /bin/bash
+
+[root@55c599663c7b www]# wrk -c32 -t16 -d 30 http://127.0.0.1:9100/api/test/info
+Running 30s test @ http://127.0.0.1:9100/api/test/info
+  16 threads and 32 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    12.04ms   34.15ms 540.61ms   97.88%
+    Req/Sec   270.91     79.32     0.93k    74.33%
+  129701 requests in 30.10s, 31.54MB read
+Requests/sec:   4309.00
+Transfer/sec:      1.05MB
+```
+
+#### hot reload
 
 1：edit `.env` and restart server
 ```
