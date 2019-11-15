@@ -5,11 +5,11 @@ MAINTAINER mc <smalleyes@live.cn>
 # dir
 WORKDIR /data/www
 
+ENV COMPOSER_ALLOW_SUPERUSER 1
 # install laravel
 RUN composer create-project --prefer-dist laravel/laravel:5.5  abtest -vvv
 
 # install laravel-swoole
-ENV COMPOSER_ALLOW_SUPERUSER 1
 RUN cd abtest && composer require toxmc/fast-laravel -vvv
 
 # install wrk and ab
