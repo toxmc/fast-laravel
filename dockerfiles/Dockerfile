@@ -6,7 +6,7 @@ MAINTAINER mc <smalleyes@live.cn>
 WORKDIR /data/www
 
 # install laravel
-run composer create-project --prefer-dist laravel/laravel:5.5  abtest -vvv
+RUN composer create-project --prefer-dist laravel/laravel:5.5  abtest -vvv
 
 # install laravel-swoole
 ENV COMPOSER_ALLOW_SUPERUSER 1
