@@ -304,6 +304,7 @@ class Manager
 
         } catch (Exception $e) {
             try {
+                $this->logError($e);
                 $exceptionResponse = $this->app[ExceptionHandler::class]->render($illuminateRequest, $e);
                 $response = Response::make($exceptionResponse, $swooleResponse);
                 $response->send();
@@ -417,6 +418,7 @@ class Manager
     protected function resetOnRequest()
     {
         $this->app->make('context.debug')->reset();
+        $this->memoryLeakCheck();
     }
 
     /**
@@ -586,6 +588,37 @@ class Manager
         if (isTesting()) {
             return;
         }
+        $this->logError($e);
         $this->app->make(ExceptionHandler::class)->report($e);
+    }
+
+    /**
+     * @param Exception $e
+     */
+    protected function logError(Exception $e)
+    {
+        Output()->writeln("<red>code:{$e->getCode()}</red>");
+        Output()->writeln("<red>file:{$e->getFile()} {$e->getLine()}</red>");
+        Output()->writeln("<red>message:{$e->getMessage()}</red>");
+    }
+
+    /**
+     * memory leak check
+     * If the memory limit is exceeded, the service is restarted at the end of the request
+     * @throws \Illuminate\Contracts\Container\BindingResolutionException
+     */
+    protected function memoryLeakCheck()
+    {
+        if (isTaskWorkerStatus()) {
+            $limit = $this->container->make('config')->get('swoole_http.server.task_memory_limit');
+        } else {
+            $limit = $this->container->make('config')->get('swoole_http.server.worker_memory_limit');
+        }
+        if ($limit) {
+            $memory = memory_get_usage(true);
+            if ($memory > $limit) {
+                self::$server->stop(self::$server->worker_id, true);
+            }
+        }
     }
 }
