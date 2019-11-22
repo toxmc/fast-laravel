@@ -15,8 +15,7 @@
         "illuminate/contracts": "~5.1",
         "illuminate/http": "~5.1",
         "illuminate/support": "~5.1",
-        "inhere/console": "^3.0",
-        "ext-json": "*"
+        "inhere/console": "^3.0"
     },
     "require-dev": {
         "laravel/framework": "5.5.*",
