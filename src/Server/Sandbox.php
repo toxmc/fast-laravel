@@ -255,13 +255,18 @@ class Sandbox
                 if (is_null($request)) {
                     return;
                 }
-                $route = $this->routes->match($request);
-                // clear resolved controller
-                if (property_exists($route, 'container')) {
-                    $route->controller = null;
+                try {
+                    $route = $this->routes->match($request);
+                    // clear resolved controller
+                    if (property_exists($route, 'container')) {
+                        $route->controller = null;
+                    }
+                    // rebind matched route's container
+                    $route->setContainer($application);
+                } catch (\Exception $e) {
+                    // may be dingo
+                    return;
                 }
-                // rebind matched route's container
-                $route->setContainer($application);
             };
 
             $resetRouter = $closure->bindTo($router, $router);
