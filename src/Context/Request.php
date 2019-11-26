@@ -20,7 +20,17 @@ class Request
      */
     protected $illuminateRequest;
 
+    /**
+     * @var Request or null
+     */
+    protected static $instance = null;
+
     protected static $requestInfo = [];
+
+    /**
+     * @var SymfonyRequest or null
+     */
+    protected $symfonyRequest = null;
 
     /**
      * Make a request.
@@ -33,8 +43,14 @@ class Request
     {
         list($get, $post, $cookie, $files, $server, $content) = self::toIlluminateParameters($swooleRequest);
 
-        return new static($get, $post, $cookie, $files, $server, $content);
+        if (!self::$instance) {
+            self::$instance = new static($get, $post, $cookie, $files, $server, $content);
+        } else {
+            self::$instance->createIlluminateRequest($get, $post, $cookie, $files, $server, $content);
+        }
+        return self::$instance;
     }
+
 
     /**
      * @param array $requestInfo
@@ -104,8 +120,7 @@ class Request
             }
         }
 
-        $request = new SymfonyRequest($get, $post, [], $cookie, $files, $server, $content);
-
+        $request = $this->getSymfonyRequest($get, $post, [], $cookie, $files, $server, $content);
         if (0 === strpos($request->headers->get('CONTENT_TYPE'), 'application/x-www-form-urlencoded')
             && in_array(strtoupper($request->server->get('REQUEST_METHOD', 'GET')), array('PUT', 'DELETE', 'PATCH'))
         ) {
@@ -114,6 +129,26 @@ class Request
         }
 
         $this->illuminateRequest = IlluminateRequest::createFromBase($request);
+    }
+
+    /**
+     * @param $query
+     * @param $request
+     * @param $attributes
+     * @param $cookies
+     * @param $files
+     * @param $server
+     * @param $content
+     * @return SymfonyRequest
+     */
+    public function getSymfonyRequest($query, $request, $attributes, $cookies, $files, $server, $content)
+    {
+        if (!$this->symfonyRequest) {
+            $this->symfonyRequest = new SymfonyRequest($query, $request, $attributes, $cookies, $files, $server, $content);
+        } else {
+            $this->symfonyRequest->initialize($query, $request, $attributes, $cookies, $files, $server, $content);
+        }
+        return $this->symfonyRequest;
     }
 
     /**
