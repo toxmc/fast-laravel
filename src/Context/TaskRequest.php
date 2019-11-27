@@ -109,26 +109,6 @@ class TaskRequest
     {
         IlluminateRequest::enableHttpMethodParameterOverride();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Copy from \Symfony\Component\HttpFoundation\Request::createFromGlobals().
-        |--------------------------------------------------------------------------
-        |
-        | With the php's bug #66606, the php's built-in web server
-        | stores the Content-Type and Content-Length header values in
-        | HTTP_CONTENT_TYPE and HTTP_CONTENT_LENGTH fields.
-        |
-        */
-
-        if ('cli-server' === PHP_SAPI) {
-            if (array_key_exists('HTTP_CONTENT_LENGTH', $server)) {
-                $server['CONTENT_LENGTH'] = $server['HTTP_CONTENT_LENGTH'];
-            }
-            if (array_key_exists('HTTP_CONTENT_TYPE', $server)) {
-                $server['CONTENT_TYPE'] = $server['HTTP_CONTENT_TYPE'];
-            }
-        }
-
         $request = new SymfonyRequest($get, $post, [], $cookie, $files, $server, $content);
 
         if (0 === strpos($request->headers->get('CONTENT_TYPE'), 'application/x-www-form-urlencoded')
@@ -149,54 +129,4 @@ class TaskRequest
         return $this->illuminateRequest;
     }
 
-    /**
-     * Transforms request parameters.
-     *
-     * @param SwooleRequest $request
-     *
-     * @return array
-     */
-    protected static function toIlluminateParameters(SwooleRequest $request)
-    {
-        $get = $request->get ?? [];
-        $post = $request->post ?? [];
-        $files = $request->files ?? [];
-        $cookie = $request->cookie ?? [];
-        $header = $request->header ?? [];
-        $server = $request->server ?? [];
-        $server = self::transformServerParameters($server, $header);
-        $content = $request->rawContent();
-
-        return [$get, $post, $cookie, $files, $server, $content];
-    }
-
-    /**
-     * Transforms $_SERVER array.
-     *
-     * @param array $server
-     * @param array $header
-     * @return array
-     */
-    protected static function transformServerParameters(array $server, array $header)
-    {
-        $SERVER = [];
-
-        foreach ($server as $key => $value) {
-            $key = strtoupper($key);
-            $SERVER[$key] = $value;
-        }
-
-        foreach ($header as $key => $value) {
-            $key = str_replace('-', '_', $key);
-            $key = strtoupper($key);
-
-            if (! in_array($key, ['REMOTE_ADDR', 'SERVER_PORT', 'HTTPS'])) {
-                $key = 'HTTP_' . $key;
-            }
-
-            $SERVER[$key] = $value;
-        }
-
-        return $SERVER;
-    }
 }
