@@ -22,6 +22,11 @@ class Response
     protected $illuminateResponse;
 
     /**
+     * @var Response or null
+     */
+    protected static $instance = null;
+
+    /**
      * Make a response.
      *
      * @param $illuminateResponse
@@ -31,7 +36,13 @@ class Response
      */
     public static function make($illuminateResponse, SwooleResponse $response)
     {
-        return new static($illuminateResponse, $response);
+        if (!static::$instance) {
+            static::$instance = new static($illuminateResponse, $response);
+        } else {
+            static::$instance->setIlluminateResponse($illuminateResponse)
+                ->setResponse($response);
+        }
+        return static::$instance;
     }
 
     /**
@@ -42,8 +53,8 @@ class Response
      */
     public function __construct($illuminateResponse, SwooleResponse $response)
     {
-        $this->setIlluminateResponse($illuminateResponse);
-        $this->setResponse($response);
+        $this->setIlluminateResponse($illuminateResponse)
+            ->setResponse($response);
     }
 
     /**
