@@ -146,14 +146,6 @@ class TaskRequest
      */
     public function toIlluminate()
     {
-        return $this->getIlluminateRequest();
-    }
-
-    /**
-     * @return IlluminateRequest
-     */
-    public function getIlluminateRequest()
-    {
         return $this->illuminateRequest;
     }
 

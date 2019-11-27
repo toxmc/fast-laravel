@@ -99,28 +99,8 @@ class Request
     protected function createIlluminateRequest($get, $post, $cookie, $files, $server, $content = null)
     {
         IlluminateRequest::enableHttpMethodParameterOverride();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Copy from \Symfony\Component\HttpFoundation\Request::createFromGlobals().
-        |--------------------------------------------------------------------------
-        |
-        | With the php's bug #66606, the php's built-in web server
-        | stores the Content-Type and Content-Length header values in
-        | HTTP_CONTENT_TYPE and HTTP_CONTENT_LENGTH fields.
-        |
-        */
-
-        if ('cli-server' === PHP_SAPI) {
-            if (array_key_exists('HTTP_CONTENT_LENGTH', $server)) {
-                $server['CONTENT_LENGTH'] = $server['HTTP_CONTENT_LENGTH'];
-            }
-            if (array_key_exists('HTTP_CONTENT_TYPE', $server)) {
-                $server['CONTENT_TYPE'] = $server['HTTP_CONTENT_TYPE'];
-            }
-        }
-
         $request = $this->getSymfonyRequest($get, $post, [], $cookie, $files, $server, $content);
+
         if (0 === strpos($request->headers->get('CONTENT_TYPE'), 'application/x-www-form-urlencoded')
             && in_array(strtoupper($request->server->get('REQUEST_METHOD', 'GET')), array('PUT', 'DELETE', 'PATCH'))
         ) {
@@ -155,14 +135,6 @@ class Request
      * @return IlluminateRequest
      */
     public function toIlluminate()
-    {
-        return $this->getIlluminateRequest();
-    }
-
-    /**
-     * @return IlluminateRequest
-     */
-    public function getIlluminateRequest()
     {
         return $this->illuminateRequest;
     }
