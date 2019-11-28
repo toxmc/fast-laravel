@@ -265,9 +265,7 @@ class Manager
         $this->createApplication();
         $this->setLaravelApp();
         $this->bindToLaravelApp();
-
-        // set application to sandbox environment
-        $this->sandbox = Sandbox::make($this->getApplication());
+        $this->setSandbox();
     }
 
     /**
@@ -289,19 +287,12 @@ class Manager
                 return;
             }
 
-            // set current request to sandbox
-            $this->sandbox->setRequest($illuminateRequest);
-            $application = $this->sandbox->getApplication();
-
-            // enable sandbox
-            $this->sandbox->enable();
-
+            $application = $this->getLaravelApp($illuminateRequest);
             // handle request via laravel's dispatcher
             $illuminateResponse = $application->handle($illuminateRequest);
             $response = Response::make($illuminateResponse, $swooleResponse);
             $response->send();
             $application->terminate($illuminateRequest, $illuminateResponse);
-
         } catch (Exception $e) {
             try {
                 $this->logError($e);
@@ -316,8 +307,6 @@ class Manager
             if ($this->container->make('config')->get('swoole_http.server.enable_access_log', false)) {
                 $this->accessOutput->log($illuminateRequest, $illuminateResponse ?? null);
             }
-            // disable and recycle sandbox resource
-            $this->sandbox->disable();
             // Reset on every request.
             $this->resetOnRequest();
         }
@@ -417,6 +406,10 @@ class Manager
      */
     protected function resetOnRequest()
     {
+        if ($this->container->make('config')->get('swoole_http.sandbox_mode', true)) {
+            // disable and recycle sandbox resource
+            $this->sandbox->disable();
+        }
         $this->app->make('context.debug')->reset();
         $this->memoryLeakCheck();
     }
@@ -459,6 +452,35 @@ class Manager
     protected function setLaravelApp()
     {
         $this->app = $this->getApplication()->getApplication();
+    }
+
+    /**
+     * Get Laravel app.
+     * @param \Illuminate\Http\Request $illuminateRequest
+     * @return Application|\Illuminate\Container\Container
+     * @throws \Illuminate\Contracts\Container\BindingResolutionException
+     */
+    protected function getLaravelApp($illuminateRequest)
+    {
+        if ($this->container->make('config')->get('swoole_http.sandbox_mode', true)) {
+            // enable sandbox and set current request to sandbox
+            $this->sandbox->enable();
+            $this->sandbox->setRequest($illuminateRequest);
+            return $this->sandbox->getApplication();
+        } else {
+            return $this->app;
+        }
+    }
+
+    /**
+     * @throws \Illuminate\Contracts\Container\BindingResolutionException
+     */
+    protected function setSandbox()
+    {
+        // set application to sandbox environment
+        if ($this->container->make('config')->get('swoole_http.sandbox_mode', true)) {
+            $this->sandbox = Sandbox::make($this->getApplication());
+        }
     }
 
     /**

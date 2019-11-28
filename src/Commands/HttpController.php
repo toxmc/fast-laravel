@@ -121,6 +121,7 @@ class HttpController extends Controller
                 return $app->make(QueueFactoryContract::class);
             });
         });
+        $this->output->table($this->getInfos(false), 'fast laravel http info.');
         (new Manager($this->laravelApp, 'laravel'))->start();
     }
 
@@ -210,6 +211,16 @@ class HttpController extends Controller
      */
     public function infosCommand()
     {
+        $this->output->table($this->getInfos(true), 'fast laravel http info.');
+    }
+
+    /**
+     * get infos
+     * @param bool $printStatus
+     * @return array
+     */
+    protected function getInfos($printStatus=true)
+    {
         $pid = $this->getPid();
         $isRunning = $this->isRunning($pid);
         $appName = $this->config('app')['name'];
@@ -218,9 +229,8 @@ class HttpController extends Controller
         $reactorNum = $this->config('server')['server']['options']['reactor_num'];
         $workerNum = $this->config('server')['server']['options']['worker_num'];
         $taskWorkerNum = $this->config('server')['server']['options']['task_worker_num'];
-        $isWebsocket = $this->config('server')['websocket']['enabled'];
+        $sandboxMode = $this->config('server')['sandbox_mode'];
         $logFile = $this->config('server')['server']['options']['log_file'];
-
         $data = [
             ['id' => 1,'name' => 'App Name','value' => $appName],
             ['id' => 1,'name' => 'PHP Version','value' => phpversion()],
@@ -228,16 +238,18 @@ class HttpController extends Controller
             ['id' => 3,'name' => 'Laravel Version','value' => $this->config('laravel')['version']],
             ['id' => 4,'name' => 'Listen IP','value' => $host],
             ['id' => 5,'name' => 'Listen Port','value' => $port],
-            ['id' => 6,'name' => 'Server Status','value' => $isRunning ? 'Online' : 'Offline'],
-            ['id' => 7,'name' => 'Reactor Num','value' => $reactorNum],
-            ['id' => 8,'name' => 'Worker Num','value' => $workerNum],
-            ['id' => 9,'name' => 'Task Worker Num','value' => $taskWorkerNum],
-            ['id' => 10,'name' => 'Websocket Mode','value' => $isWebsocket ? 'On' : 'Off'],
-            ['id' => 11,'name' => 'PID','value' => $isRunning ? $pid : 'None'],
-            ['id' => 12,'name' => 'Log Path','value' => $logFile],
+            ['id' => 6,'name' => 'Reactor Num','value' => $reactorNum],
+            ['id' => 7,'name' => 'Worker Num','value' => $workerNum],
+            ['id' => 8,'name' => 'Task Worker Num','value' => $taskWorkerNum],
+            ['id' => 9,'name' => 'Sandbox Mode','value' => $sandboxMode ? 'On' : 'Off'],
+            ['id' => 10,'name' => 'Log Path','value' => $logFile],
         ];
 
-        $this->output->table($data, 'fast laravel http info.');
+        if ($isAll) {
+            $data[] = ['id' => 11,'name' => 'Server Status','value' => $isRunning ? 'Online' : 'Offline'];
+            $data[] = ['id' => 12,'name' => 'PID','value' => $isRunning ? $pid : 'None'];
+        }
+        return $data;
     }
 
     /**

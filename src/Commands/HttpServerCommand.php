@@ -168,7 +168,7 @@ class HttpServerCommand extends Command
         $reactorNum = $this->configs['server']['options']['reactor_num'];
         $workerNum = $this->configs['server']['options']['worker_num'];
         $taskWorkerNum = $this->configs['server']['options']['task_worker_num'];
-        $isWebsocket = $this->configs['websocket']['enabled'];
+        $sandboxMode = $this->config('server')['sandbox_mode'];
         $logFile = $this->configs['server']['options']['log_file'];
 
         $table = [
@@ -178,13 +178,13 @@ class HttpServerCommand extends Command
             ['Laravel Version', $this->getApplication()->getVersion()],
             ['Listen IP', $host],
             ['Listen Port', $port],
-            ['Server Status', $isRunning ? 'Online' : 'Offline'],
             ['Reactor Num', $reactorNum],
             ['Worker Num', $workerNum],
-            ['Task Worker Num', $isWebsocket ? $taskWorkerNum : 0],
-            ['Websocket Mode', $isWebsocket ? 'On' : 'Off'],
-            ['PID', $isRunning ? $pid : 'None'],
+            ['Task Worker Num', $taskWorkerNum],
+            ['Sandbox Mode', $sandboxMode ? 'On' : 'Off'],
             ['Log Path', $logFile],
+            ['Server Status', $isRunning ? 'Online' : 'Offline'],
+            ['PID', $isRunning ? $pid : 'None'],
         ];
 
         $this->table(['Name', 'Value'], $table);
