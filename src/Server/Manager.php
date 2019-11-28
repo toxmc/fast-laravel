@@ -463,9 +463,9 @@ class Manager
     protected function getLaravelApp($illuminateRequest)
     {
         if ($this->container->make('config')->get('swoole_http.sandbox_mode', true)) {
-            // enable sandbox and set current request to sandbox
-            $this->sandbox->enable();
+            // set current request to sandbox and enable sandbox
             $this->sandbox->setRequest($illuminateRequest);
+            $this->sandbox->enable();
             return $this->sandbox->getApplication();
         } else {
             return $this->app;
