@@ -229,7 +229,7 @@ class HttpController extends Controller
         $reactorNum = $this->config('server')['server']['options']['reactor_num'];
         $workerNum = $this->config('server')['server']['options']['worker_num'];
         $taskWorkerNum = $this->config('server')['server']['options']['task_worker_num'];
-        $sandboxMode = $this->config('server')['sandbox_mode'];
+        $sandboxMode = $this->config('server')['sandbox_mode'] ?? true;
         $logFile = $this->config('server')['server']['options']['log_file'];
         $data = [
             ['id' => 1,'name' => 'App Name','value' => $appName],
@@ -245,7 +245,7 @@ class HttpController extends Controller
             ['id' => 10,'name' => 'Log Path','value' => $logFile],
         ];
 
-        if ($isAll) {
+        if ($printStatus) {
             $data[] = ['id' => 11,'name' => 'Server Status','value' => $isRunning ? 'Online' : 'Offline'];
             $data[] = ['id' => 12,'name' => 'PID','value' => $isRunning ? $pid : 'None'];
         }

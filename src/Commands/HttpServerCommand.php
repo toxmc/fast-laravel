@@ -168,7 +168,7 @@ class HttpServerCommand extends Command
         $reactorNum = $this->configs['server']['options']['reactor_num'];
         $workerNum = $this->configs['server']['options']['worker_num'];
         $taskWorkerNum = $this->configs['server']['options']['task_worker_num'];
-        $sandboxMode = $this->config('server')['sandbox_mode'];
+        $sandboxMode = $this->config('server')['sandbox_mode'] ?? true;
         $logFile = $this->configs['server']['options']['log_file'];
 
         $table = [
