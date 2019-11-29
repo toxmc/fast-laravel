@@ -287,7 +287,7 @@ class Manager
                 return;
             }
 
-            $application = $this->getLaravelApp($illuminateRequest);
+            $application = $this->getFastApplication($illuminateRequest);
             // handle request via laravel's dispatcher
             $illuminateResponse = $application->handle($illuminateRequest);
             $response = Response::make($illuminateResponse, $swooleResponse);
@@ -455,12 +455,12 @@ class Manager
     }
 
     /**
-     * Get Laravel app.
+     * Get fast application.
      * @param \Illuminate\Http\Request $illuminateRequest
-     * @return Application|\Illuminate\Container\Container
+     * @return Application
      * @throws \Illuminate\Contracts\Container\BindingResolutionException
      */
-    protected function getLaravelApp($illuminateRequest)
+    protected function getFastApplication($illuminateRequest)
     {
         if ($this->container->make('config')->get('swoole_http.sandbox_mode', true)) {
             // set current request to sandbox and enable sandbox
@@ -468,7 +468,7 @@ class Manager
             $this->sandbox->enable();
             return $this->sandbox->getApplication();
         } else {
-            return $this->app;
+            return clone $this->getApplication();
         }
     }
 
