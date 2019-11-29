@@ -10,7 +10,7 @@
 > 🚀[fast-laravel](https://packagist.org/packages/toxmc/fast-laravel). is a package that made you `laravel` application fast.
 
 #### install 
-first you mush install [composer](https://getcomposer.org/)
+first you must install [composer](https://getcomposer.org/)
 
 add require info into composer.json and execute `composer install`
 ```
@@ -103,15 +103,15 @@ docker build -t=fast-laravel dockerfiles
 docker run --rm -p 9100:9100 -d fast-laravel:latest
 docker exec -it `docker ps -q` /bin/bash
 
-[root@55c599663c7b www]# wrk -c32 -t16 -d 30 http://127.0.0.1:9100/api/test/info
+[root@a26c3596e1b8 www]# wrk -c32 -t8 -d 30s http://127.0.0.1:9100/api/test/info
 Running 30s test @ http://127.0.0.1:9100/api/test/info
-  16 threads and 32 connections
+  8 threads and 32 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    12.04ms   34.15ms 540.61ms   97.88%
-    Req/Sec   270.91     79.32     0.93k    74.33%
-  129701 requests in 30.10s, 31.54MB read
-Requests/sec:   4309.00
-Transfer/sec:      1.05MB
+    Latency     7.66ms   14.23ms 312.91ms   93.79%
+    Req/Sec   775.52    122.16     1.86k    72.42%
+  185354 requests in 30.06s, 41.72MB read
+Requests/sec:   6165.69
+Transfer/sec:      1.39MB
 ```
 
 #### hot reload
