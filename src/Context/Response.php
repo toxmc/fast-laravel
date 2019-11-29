@@ -121,21 +121,25 @@ class Response
         } elseif ($illuminateResponse instanceof BinaryFileResponse) {
             $this->response->sendfile($illuminateResponse->getFile()->getPathname());
         } else {
-            // 分段发送每次发送16k
-            $contents = str_split($illuminateResponse->getContent(), 16384);
-            foreach ($contents as $content) {
-                $isOk = $this->response->write($content);
-                if (!$isOk) {
-                    $retry = 3;
-                    while ($retry--) {
-                        $isOk = $this->response->write($content);
-                        if ($isOk) {
-                            break;
+            // 分段发送每次发送100k
+            if (strlen($illuminateResponse->getContent()) > 102400) {
+                $contents = str_split($illuminateResponse->getContent(), 102400);
+                foreach ($contents as $content) {
+                    $isOk = $this->response->write($content);
+                    if (!$isOk) {
+                        $retry = 3;
+                        while ($retry--) {
+                            $isOk = $this->response->write($content);
+                            if ($isOk) {
+                                break;
+                            }
                         }
                     }
                 }
+                $this->response->end();
+            } else {
+                $this->response->end($illuminateResponse->getContent());
             }
-            $this->response->end();
         }
     }
 
