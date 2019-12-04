@@ -105,7 +105,7 @@ if (! function_exists('isCoContext')) {
      */
     function isCoContext(): bool
     {
-        return Co::getuid() > 0;
+        return Swoole\Coroutine::getuid() > 0;
     }
 }
 

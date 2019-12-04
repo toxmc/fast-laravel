@@ -32,7 +32,7 @@ return [
             'reactor_num'           => env('SWOOLE_HTTP_REACTOR_NUM', swoole_cpu_num()),
             'worker_num'            => env('SWOOLE_HTTP_WORKER_NUM', swoole_cpu_num()),
             'task_worker_num'       => env('SWOOLE_HTTP_TASK_WORKER_NUM', swoole_cpu_num()),
-            'task_enable_coroutine' => env('SWOOLE_HTTP_TASK_ENABLE_CO', true),
+            'task_enable_coroutine' => env('SWOOLE_HTTP_TASK_ENABLE_CO', false),
             // The data to receive can't be larger than buffer_output_size.
             'package_max_length'    => 20 * 1024 * 1024,
             // The data to send can't be larger than buffer_output_size.

@@ -193,6 +193,9 @@ class Manager
     {
         foreach ($this->events as $event) {
             $method = 'on' . ucfirst($event);
+            if ($method == 'onTask' && $this->container->make('config')->get('swoole_http.server.options.task_enable_coroutine')) {
+                $method .= "Co";
+            }
             if (method_exists($this, $method)) {
                 $callBack = [$this, $method];
             } else {
@@ -339,6 +342,33 @@ class Manager
             'success' => isset($e) ? false : true,
             'result' => isset($e) ? $e->getMessage() : $result
         ];
+    }
+
+    /**
+     * Set onTask callback for task coroutine.
+     *
+     * @param HttpServer $server
+     * @param Swoole\Server\Task $task
+     *
+     * @return mixed
+     */
+    public function onTaskCo(HttpServer $server, $task)
+    {
+        try {
+            // transform swoole task data to illuminate request
+            $taskRequest = TaskRequest::make($task->data);
+            $result = $this->getApplication()->handle($taskRequest);
+        } catch (Exception $e) {
+            $this->warning($e->getMessage());
+            $this->warning($e->getTraceAsString());
+            $this->logServerError($e);
+        } finally {
+            $this->resetOnRequest();
+        }
+        $task->finish([
+            'success' => isset($e) ? false : true,
+            'result' => isset($e) ? $e->getMessage() : $result
+        ]);
     }
 
     /**
