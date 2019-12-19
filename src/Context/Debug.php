@@ -12,9 +12,9 @@ class Debug
     /**
      * add info to debug stack
      *
-     * @param string $message
+     * @param mixed $message
      */
-    public function add(string $message)
+    public function add($message)
     {
         if ($message) {
             $this->debugStack[] = $message;
