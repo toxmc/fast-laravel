@@ -185,7 +185,7 @@ class Application
                 $content = ob_get_contents();
                 ob_clean();
             }
-            $content = $debug ? implode("<br/><br/>", $debugStack) . $content : $content;
+            $content = $debug ? var_export($debugStack, true) . $content : $content;
             $response->setContent($content);
         }
 
