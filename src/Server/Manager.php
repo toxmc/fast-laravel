@@ -169,12 +169,33 @@ class Manager
         $args = $hasCert && $hasKey ? [SWOOLE_PROCESS, SWOOLE_SOCK_TCP | SWOOLE_SSL] : [];
 
         self::$server = new HttpServer($host, $port, ...$args);
+        $this->hotReloadProcess($config);
+        $this->userInitProcesses($config);
+    }
+
+    /**
+     * dev hot reload
+     * @param $config
+     */
+    protected function hotReloadProcess($config)
+    {
         if ($config->get('swoole_http.server.hot_reload', false)) {
             self::$server->addProcess((new HotReload(
                 'HotReload', [
                     'hot_reload_type' => $config->get('swoole_http.server.hot_reload_type', '')
                 ]
             ))->getProcess());
+        }
+    }
+
+    /**
+     * User-defined processes
+     * @param $config
+     */
+    protected function userInitProcesses($config)
+    {
+        foreach ($config->get('swoole_http.processes', []) as $processes => $processesName) {
+            self::$server->addProcess((new $processes($processesName))->getProcess());
         }
     }
 

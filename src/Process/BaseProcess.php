@@ -262,16 +262,4 @@ abstract class BaseProcess
      */
     public abstract function run(Process $process);
 
-    /**
-     * @return mixed
-     */
-    public abstract function onShutDown();
-
-    /**
-     * @param string $str
-     *
-     * @return mixed
-     */
-    public abstract function onReceive(string $str);
-
 }
