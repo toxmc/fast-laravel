@@ -195,7 +195,11 @@ class Manager
     protected function userInitProcesses($config)
     {
         foreach ($config->get('swoole_http.processes', []) as $processes => $processesName) {
-            self::$server->addProcess((new $processes($processesName))->getProcess());
+            if (class_exists($processes)) {
+                self::$server->addProcess((new $processes($processesName))->getProcess());
+            } else {
+                Output()->writeln("<red>User-defined processes:{$processes} not exists.</red>");
+            }
         }
     }
 
