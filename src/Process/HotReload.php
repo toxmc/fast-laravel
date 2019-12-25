@@ -94,7 +94,14 @@ class HotReload extends BaseProcess
     {
         $startTime = microtime(true);
         $doReload = $reIndex = false;
-        $files = File::scanDirectory(app_path());
+
+        $files = ['dirs' => [], 'files' => []];
+        $paths = $this->getArg('hot_reload_paths', [app_path()]);
+        foreach ($paths as $path) {
+            $val = File::scanDirectory($path);
+            $files['dirs'] = array_merge($files['dirs'], $val['dirs']);
+            $files['files'] = array_merge($files['files'], $val['files']);
+        }
         if (isset($files['files']) && is_array($files['files'])) {
             $countFiles = count($files['files']);
             $count = count($this->index);
@@ -174,22 +181,24 @@ class HotReload extends BaseProcess
 
         $this->inotifyFd = inotify_init();
         stream_set_blocking($this->inotifyFd, 0);
-
-        $dirIterator = new \RecursiveDirectoryIterator(app_path());
-        $iterator = new \RecursiveIteratorIterator($dirIterator);
-
         $tempFiles = $monitorFiles = [];
-        foreach ($iterator as $file) {
-            $fileInfo = pathinfo($file);
-            if (!isset($fileInfo['extension']) || $fileInfo['extension'] != 'php') {
-                continue;
-            }
-            //改为监听目录
-            $dirPath = $fileInfo['dirname'];
-            if (!isset($tempFiles[$dirPath])) {
-                $wd = inotify_add_watch($this->inotifyFd, $fileInfo['dirname'], $this->inotifyFileMask);
-                $tempFiles[$dirPath] = $wd;
-                $monitorFiles[$wd] = $dirPath;
+
+        $paths = $this->getArg('hot_reload_paths', [app_path()]);
+        foreach ($paths as $path) {
+            $dirIterator = new \RecursiveDirectoryIterator($path);
+            $iterator = new \RecursiveIteratorIterator($dirIterator);
+            foreach ($iterator as $file) {
+                $fileInfo = pathinfo($file);
+                if (!isset($fileInfo['extension']) || $fileInfo['extension'] != 'php') {
+                    continue;
+                }
+                //改为监听目录
+                $dirPath = $fileInfo['dirname'];
+                if (!isset($tempFiles[$dirPath])) {
+                    $wd = inotify_add_watch($this->inotifyFd, $fileInfo['dirname'], $this->inotifyFileMask);
+                    $tempFiles[$dirPath] = $wd;
+                    $monitorFiles[$wd] = $dirPath;
+                }
             }
         }
         unset($tempFiles);

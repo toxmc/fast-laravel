@@ -19,6 +19,10 @@ return [
         'handle_static_files' => env('SWOOLE_HANDLE_STATIC', true),
         'hot_reload'          => env('SWOOLE_HOT_RELOAD', false),
         'hot_reload_type'     => env('SWOOLE_HOT_RELOAD_TYPE', ''),// inotify or tick
+        'hot_reload_paths'    => [
+            base_path('app'),
+            base_path('config'),
+        ],
         // If the memory limit(byte) is exceeded, the service is restarted at the end of the request
         'worker_memory_limit' => env('SWOOLE_WORKER_MEMORY_LIMIT', 200 * 1024 * 1024),
         'task_memory_limit'   => env('SWOOLE_TASK_MEMORY_LIMIT', 200 * 1024 * 1024),

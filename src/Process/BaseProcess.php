@@ -117,16 +117,16 @@ abstract class BaseProcess
     }
 
     /**
-     * @param $key
-     *
+     * @param string $key
+     * @param mixed $default
      * @return mixed|null
      */
-    public function getArg($key)
+    public function getArg($key, $default=null)
     {
-        if (isset($this->args[$key])) {
+        if (isset($this->args[$key]) && !empty($this->args[$key])) {
             return $this->args[$key];
         } else {
-            return null;
+            return $default;
         }
     }
 

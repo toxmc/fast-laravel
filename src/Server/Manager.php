@@ -182,7 +182,8 @@ class Manager
         if ($config->get('swoole_http.server.hot_reload', false)) {
             self::$server->addProcess((new HotReload(
                 'HotReload', [
-                    'hot_reload_type' => $config->get('swoole_http.server.hot_reload_type', '')
+                    'hot_reload_type'  => $config->get('swoole_http.server.hot_reload_type', ''),
+                    'hot_reload_paths' => $config->get('swoole_http.server.hot_reload_paths', []),
                 ]
             ))->getProcess());
         }
