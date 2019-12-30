@@ -7,9 +7,7 @@ return [
     |--------------------------------------------------------------------------
     | HTTP server configurations.
     |--------------------------------------------------------------------------
-    |
-    | @see https://www.swoole.co.uk/docs/modules/swoole-server/configuration
-    |
+    | @see https://wiki.swoole.com/wiki/page/274.html
     */
     'server'    => [
         'host'                => env('SWOOLE_HTTP_HOST', '127.0.0.1'),
@@ -66,6 +64,44 @@ return [
     |--------------------------------------------------------------------------
     */
     'task_space' => "\App\\Tasks\\",
+
+    /*
+    |--------------------------------------------------------------------------
+    | HTTP server APM tracker.
+    |--------------------------------------------------------------------------
+    | based on xhgui,tideways or tideways_xhprof.
+    | see:https://github.com/tideways/php-xhprof-extension
+    | see:https://github.com/perftools/xhgui
+    */
+    'tracker' => [
+        'enable' => true,
+        // only support mongodb and file
+        'handler' => 'mongodb',
+        'filename' => function($url) {
+            $time = microtime(true);
+            $url = substr(md5($url), 0, 6);
+            return storage_path("tracker/xhgui.data.{$time}_{$url}");
+        },
+
+        'db' => [
+            'host'    => 'mongodb://localhost:27017/xhprof',
+            'db'      => 'xhprof',
+            'options' => [],
+        ],
+
+        // Profile 1 in 100 requests. You can return true to profile every request.
+        'profiler' => [
+            'enable'      => function ($illuminateRequest) {
+                return (bool) $illuminateRequest->cookie('enable_apm'); //rand(1, 100) === 42;
+            },
+            'simple_url'  => function ($url) {
+                return preg_replace('/\=\d+/', '', $url);
+            },
+            'filter_path' => [
+                '/api/test'
+            ]
+        ],
+    ],
 
     /*
     |--------------------------------------------------------------------------

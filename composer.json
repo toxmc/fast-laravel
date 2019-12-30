@@ -23,7 +23,8 @@
         "mockery/mockery": "~1.0",
         "codedungeon/phpunit-result-printer": "^0.14.0",
         "php-mock/php-mock": "^2.0",
-        "swoft/swoole-ide-helper": "^4.3"
+        "swoft/swoole-ide-helper": "^4.3",
+        "mongodb/mongodb": "^1.4"
     },
     "autoload": {
         "files": [
@@ -47,8 +48,6 @@
             "aliases": {
                 "Server": "FastLaravel\\Http\\Server\\Facades\\Server",
                 "Table": "FastLaravel\\Http\\Server\\Facades\\Table",
-                "Room": "FastLaravel\\Http\\Websocket\\Facades\\Room",
-                "Websocket": "FastLaravel\\Http\\Websocket\\Facades\\Websocket"
             }
         }
     }

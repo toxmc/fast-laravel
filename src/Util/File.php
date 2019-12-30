@@ -278,7 +278,7 @@ class File
     static function createFile($filePath, $content, $overwrite = true)
     {
         if (static::touchFile($filePath, $overwrite)) {
-            return (bool)file_put_contents($filePath, $content);
+            return (bool)file_put_contents($filePath, $content, FILE_APPEND);
         } else {
             return false;
         }

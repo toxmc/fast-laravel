@@ -9,6 +9,7 @@ use FastLaravel\Http\Context\Request;
 use FastLaravel\Http\Context\TaskRequest;
 use FastLaravel\Http\Context\Response;
 use FastLaravel\Http\Context\Debug;
+use FastLaravel\Http\Tracker\Tracker;
 use FastLaravel\Http\Process\HotReload;
 use FastLaravel\Http\Database\ConnectionResolver;
 use Illuminate\Contracts\Container\Container;
@@ -70,6 +71,11 @@ class Manager
      * @var AccessOutput
      */
     protected $accessOutput;
+
+    /**
+     * @var Tracker
+     */
+    protected $tracker;
 
     /**
      * Server events.
@@ -242,6 +248,14 @@ class Manager
     }
 
     /**
+     * create tracker
+     */
+    protected function createTracker()
+    {
+        $this->tracker = Tracker::make(Output());
+    }
+
+    /**
      * "onStart" callback.
      *
      * @param HttpServer $server
@@ -288,13 +302,14 @@ class Manager
             $this->createTaskApplication();
             $this->setLaravelApp();
             $this->bindToLaravelApp();
-            return;
+        } else {
+            $this->setProcessName('worker');
+            $this->createApplication();
+            $this->setLaravelApp();
+            $this->bindToLaravelApp();
+            $this->setSandbox();
         }
-        $this->setProcessName('worker');
-        $this->createApplication();
-        $this->setLaravelApp();
-        $this->bindToLaravelApp();
-        $this->setSandbox();
+        $this->createTracker();
     }
 
     /**
@@ -308,6 +323,7 @@ class Manager
     {
         // transform swoole request to illuminate request
         $illuminateRequest = Request::make($swooleRequest)->toIlluminate();
+        $this->tracker->collecter($illuminateRequest);
 
         try {
             // handle static file request first
@@ -338,6 +354,7 @@ class Manager
             }
             // Reset on every request.
             $this->resetOnRequest();
+            $this->tracker->report($illuminateRequest);
         }
     }
 
