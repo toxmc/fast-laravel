@@ -47,7 +47,7 @@
             ],
             "aliases": {
                 "Server": "FastLaravel\\Http\\Server\\Facades\\Server",
-                "Table": "FastLaravel\\Http\\Server\\Facades\\Table",
+                "Table": "FastLaravel\\Http\\Server\\Facades\\Table"
             }
         }
     }
