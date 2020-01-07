@@ -74,10 +74,9 @@ return [
     | see:https://github.com/perftools/xhgui
     */
     'tracker' => [
-        'enable' => true,
-        // only support mongodb and file
-        'handler' => 'mongodb',
-        'filename' => function($url) {
+        'enable'   => false,
+        'handler'  => 'mongodb', // only support mongodb and file
+        'filename' => function ($url) {
             $time = microtime(true);
             $url = substr(md5($url), 0, 6);
             return storage_path("tracker/xhgui.data.{$time}_{$url}");
@@ -136,7 +135,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'processes' => [
-        FastLaravel\Http\Process\Crond::class => 'crond',
+        // FastLaravel\Http\Process\Crond::class => 'crond',
     ],
 
     /*
