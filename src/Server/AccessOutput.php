@@ -4,7 +4,7 @@ namespace FastLaravel\Http\Server;
 use DateTimeInterface;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use FastLaravel\Http\Output\Output;
+use FastLaravel\Http\Facade\Show;
 
 /**
  * Class AccessLog
@@ -14,19 +14,10 @@ use FastLaravel\Http\Output\Output;
 class AccessOutput
 {
     /**
-     * @var \FastLaravel\Http\Output\Output
-     */
-    protected $output;
-
-    /**
      * AccessOutput constructor.
-     *
-     * @param \FastLaravel\Http\Output\Output $output
      */
-    public function __construct(Output $output)
-    {
-        $this->output = $output;
-    }
+    public function __construct()
+    {}
 
     /**
      * Access log.
@@ -48,7 +39,7 @@ class AccessOutput
         }
         $style = $this->style($status);
         $useTime = round((microtime(true) - $request->server('REQUEST_TIME_FLOAT')) * 1000);
-        $this->output->writeln(
+        Show::writeln(
             sprintf("<cyan>%s</cyan> <yellow>%s</yellow> %s <$style>%d</$style> %s <yellow>%s</yellow>ms",
                 $date,
                 $method,

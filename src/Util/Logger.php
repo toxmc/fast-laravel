@@ -5,6 +5,7 @@ namespace FastLaravel\Http\Util;
 use Psr\Log\LogLevel;
 use Psr\Log\LoggerInterface;
 use Psr\Log\InvalidArgumentException;
+use FastLaravel\Http\Facade\Show;
 
 /**
  * Class Logger
@@ -35,9 +36,7 @@ class Logger extends LogLevel implements LoggerInterface
     );
 
     public function __construct()
-    {
-        $this->output = \output();
-    }
+    {}
 
     public function error($message, array $context = array())
     {
@@ -88,7 +87,7 @@ class Logger extends LogLevel implements LoggerInterface
         if ($context) {
             $message .= 'context=' . var_export($context, true);
         }
-        $this->output->writeln($message);
+        Show::writeln($message);
     }
 
 }

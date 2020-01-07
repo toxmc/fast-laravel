@@ -3,6 +3,7 @@
 namespace FastLaravel\Http\Commands;
 
 use Illuminate\Console\Command;
+use FastLaravel\Http\Facade\Show;
 use Swoole\Process;
 
 class HttpServerCommand extends Command
@@ -77,13 +78,13 @@ class HttpServerCommand extends Command
         $this->action = $this->argument('action');
 
         if (in_array($this->action, ['start', 'stop', 'restart', 'reload'])) {
-            \Output()->writeLogo();
+            Show::writeLogo();
             $this->error("The argument '{$this->action}'. has been migrated to fast.");
             $this->comment("Please Usage: php fast http:{$this->action}");
             exit(1);
         }
         if (!in_array($this->action, ['infos', 'config', 'publish'])) {
-            \Output()->writeLogo();
+            Show::writeLogo();
             $this->error("Invalid argument '{$this->action}'. Expected 'config', 'infos' or 'publish'.");
             $this->comment("Please Usage: php artisan http config | infos or publish.");
             exit(1);

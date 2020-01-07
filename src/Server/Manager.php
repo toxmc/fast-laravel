@@ -12,6 +12,7 @@ use FastLaravel\Http\Context\Debug;
 use FastLaravel\Http\Tracker\Tracker;
 use FastLaravel\Http\Process\HotReload;
 use FastLaravel\Http\Database\ConnectionResolver;
+use FastLaravel\Http\Facade\Show;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 
@@ -205,7 +206,7 @@ class Manager
             if (class_exists($processes)) {
                 self::$server->addProcess((new $processes($processesName))->getProcess());
             } else {
-                Output()->writeln("<red>User-defined processes:{$processes} not exists.</red>");
+                Show::error("User-defined processes:{$processes} not exists.");
             }
         }
     }
@@ -244,7 +245,7 @@ class Manager
      */
     protected function createAccessOutput()
     {
-        $this->accessOutput = new AccessOutput(Output());
+        $this->accessOutput = new AccessOutput();
     }
 
     /**
@@ -252,7 +253,7 @@ class Manager
      */
     protected function createTracker()
     {
-        $this->tracker = Tracker::make(Output());
+        $this->tracker = Tracker::make();
     }
 
     /**
@@ -269,7 +270,7 @@ class Manager
         if (isTesting()) {
             return;
         }
-        Output()->writeln('Server has been started. ' .
+        Show::writeln('Server has been started. ' .
             "(master PID: <cyan>{$server->master_pid}</cyan>, manager PID: <cyan>{$server->manager_pid}</cyan>)");
     }
 
@@ -692,9 +693,9 @@ class Manager
      */
     protected function logError(Exception $e)
     {
-        Output()->writeln("<red>code:{$e->getCode()}</red>");
-        Output()->writeln("<red>file:{$e->getFile()} {$e->getLine()}</red>");
-        Output()->writeln("<red>message:{$e->getMessage()}</red>");
+        Show::error("code:{$e->getCode()}");
+        Show::error("file:{$e->getFile()} {$e->getLine()}");
+        Show::error("message:{$e->getMessage()}");
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace FastLaravel\Http\Process;
 
 use Swoole\Process;
+use FastLaravel\Http\Facade\Show;
 
 /**
  * Class BaseProcess
@@ -146,20 +147,20 @@ abstract class BaseProcess
         $pid = $this->getServerPid();
 
         if (!$this->isRunning($pid)) {
-            Output()->writeln("<red>Failed! There is no swoole_http_server process running.</red>");
+            Show::error("Failed! There is no swoole_http_server process running.");
             exit(1);
         }
 
-        Output()->writeln('Reloading swoole_http_server...');
+        Show::writeln('Reloading swoole_http_server...');
 
         $isRunning = $this->killProcess($pid, SIGUSR1);
 
         if (!$isRunning) {
-            Output()->writeln('> failure');
+            Show::writeln('> failure');
             exit(1);
         }
 
-        Output()->writeln('> success');
+        Show::writeln('> success');
     }
 
     /**

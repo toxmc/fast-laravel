@@ -16,11 +16,6 @@ class LoggerTest extends TestCase
         $this->logger = new Logger();
     }
 
-    public function testOutput()
-    {
-        $this->assertTrue($this->logger->output instanceof Output);
-    }
-
     /**
      * @expectedException InvalidArgumentException
      */

@@ -4,6 +4,7 @@ namespace FastLaravel\Http\Process;
 
 use Swoole\Process;
 use Swoole\Timer;
+use FastLaravel\Http\Facade\Show;
 use FastLaravel\Http\Util\File;
 
 /**
@@ -70,20 +71,20 @@ class HotReload extends BaseProcess
         sleep(1);
         $type = $this->getArg('hot_reload_type');
         if ($type && !in_array($type, $this->supportReloadTypes)) {
-            output()->writeln("<red>Hot reload type error.</red>");
+            Show::error("Hot reload type error.");
             $supportTypes = trim(implode('|', $this->supportReloadTypes), '|');
-            output()->writeln("<red>Only the following types ({$supportTypes}) are supported. '{$type}' you used.</red>");
+            Show::error("Only the following types ({$supportTypes}) are supported. '{$type}' you used.");
             $type = "";
         }
         if (extension_loaded('inotify') && (!$type || $type == 'inotify')) {
             $this->inotifyFileMask = IN_MODIFY | IN_CREATE | IN_IGNORED | IN_DELETE | IN_MOVE;
             $this->inotify();
-            output()->writeln("starting hot reload: use inotify");
+            Show::info("starting hot reload: use inotify");
         } else {
             Timer::tick(2000, function () {
                 $this->runComparison();
             });
-            output()->writeln("starting hot reload: use timer tick comparison");
+            Show::info("starting hot reload: use timer tick comparison");
         }
     }
 
@@ -110,13 +111,13 @@ class HotReload extends BaseProcess
             if ($countFiles < $count && !$this->firstScan) {
                 $this->index = [];
                 $reIndex = true;
-                output()->writeln("<red>Some files have been deleted.</red>");
+                Show::error("Some files have been deleted.");
             }
 
             foreach ($files['files'] as $file) {
                 if (! file_exists($file)) {
                     $doReload = true;
-                    output()->writeln("File:<magenta>{$file}</magenta> has been deleted.");
+                    Show::writeln("File:<magenta>{$file}</magenta> has been deleted.");
                     continue;
                 }
                 $mTime = filemtime($file);
@@ -125,12 +126,12 @@ class HotReload extends BaseProcess
                     $doReload = true;
                     $this->index[$iNode] = ['m_time' => $mTime];
                     if (!$this->firstScan && !$reIndex) {
-                        output()->writeln("File:<magenta>{$file}</magenta> has been added.");
+                        Show::writeln("File:<magenta>{$file}</magenta> has been added.");
                     }
                 } elseif($this->index[$iNode]['m_time'] != $mTime) {
                     $doReload = true;
                     $this->index[$iNode] = ['m_time' => $mTime];
-                    output()->writeln("File:<magenta>{$file}</magenta> has been modified.");
+                    Show::writeln("File:<magenta>{$file}</magenta> has been modified.");
                 }
             }
         }
@@ -138,7 +139,7 @@ class HotReload extends BaseProcess
             $count = count($this->index);
             $time = date('Y-m-d H:i:s');
             $usage = round(microtime(true) - $startTime, 3);
-            output()->writeln("Reload at <yellow>{$time}</yellow> use : <yellow>{$usage}</yellow> s include: <yellow>{$count}</yellow> files");
+            Show::writeln("Reload at <yellow>{$time}</yellow> use : <yellow>{$usage}</yellow> s include: <yellow>{$count}</yellow> files");
             $this->reloadServer();
         }
         $this->firstScan = false;
@@ -218,7 +219,7 @@ class HotReload extends BaseProcess
                 } else {
                     $flag = true;
                     $msg = $wdConstants[$ev['mask']][1] ?? 'has been modified.';
-                    output()->writeln('File:<magenta>' . $monitorFiles[$ev['wd']] . '/' . $ev['name'] . '</magenta> '. $msg . '.');
+                    Show::writeln('File:<magenta>' . $monitorFiles[$ev['wd']] . '/' . $ev['name'] . '</magenta> '. $msg . '.');
                 }
             }
             if ($flag == true && !$this->inotifyReloadLock) {
@@ -228,15 +229,5 @@ class HotReload extends BaseProcess
                 });
             }
         }, null, SWOOLE_EVENT_READ);
-    }
-
-    public function onShutDown()
-    {
-        // TODO: Implement onShutDown() method.
-    }
-
-    public function onReceive(string $str)
-    {
-        // TODO: Implement onReceive() method.
     }
 }

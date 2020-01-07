@@ -5,7 +5,7 @@ namespace FastLaravel\Http\Tracker;
 use MongoDB\Client;
 use Illuminate\Http\Request;
 use Illuminate\Config\Repository;
-use FastLaravel\Http\Output\Output;
+use FastLaravel\Http\Facade\Show;
 use FastLaravel\Http\Tracker\SaverInterface;
 /**
  * Class Tracker
@@ -25,11 +25,6 @@ class Tracker
     protected $config = null;
 
     /**
-     * @var Output
-     */
-    protected $output = null;
-
-    /**
      * @var bool
      */
     protected $shouldRun = false;
@@ -45,24 +40,21 @@ class Tracker
 
     /**
      * Make a Tracker.
-     * @param Output $output
      * @return Tracker
      */
-    public static function make($output)
+    public static function make()
     {
         if (!self::$instance) {
-            self::$instance = new self($output);
+            self::$instance = new self();
         }
         return self::$instance;
     }
 
     /**
      * Tracker constructor.
-     * @param Output $output
      */
-    private function __construct($output)
+    private function __construct()
     {
-        $this->output = $output;
         $this->enable = (bool) config('swoole_http.tracker.enable');
 
         $this->tideways = extension_loaded('tideways');
@@ -70,16 +62,16 @@ class Tracker
 
         // this file should not - under no circumstances - interfere with any other application
         if ($this->enable && !$this->tideways && !$this->tideways_xhprof) {
-            $this->output->writeln("<cyan>please install tideways or tideways_xhprof extension.</cyan>");
+            Show::error("please install tideways or tideways_xhprof extension.");
             $this->enable = false;
         }
         if ($this->enable && config('swoole_http.tracker.handler') == 'mongodb') {
             if (!extension_loaded('mongodb')) {
-                $this->output->writeln("<cyan>please install mongodb extension.</cyan>");
+                Show::error("please install mongodb extension.");
                 $this->enable = false;
             }
             if (!class_exists("MongoDB\Client")) {
-                $this->output->writeln("<cyan>please install composer mongodb/mongodb extension.</cyan>");
+                Show::error("please install composer mongodb/mongodb extension.");
                 $this->enable = false;
             }
         }
@@ -106,7 +98,7 @@ class Tracker
         $filterPath = config('swoole_http.tracker.profiler.filter_path');
         $path = $illuminateRequest->getPathInfo();
         if (is_array($filterPath) && in_array($path, $filterPath)) {
-            $this->output->writeln("<cyan>filter path:{$path}</cyan>");
+            Show::error("filter path:{$path}");
             $ret = false;
         }
         return $this->shouldRun=$ret;
@@ -193,7 +185,7 @@ class Tracker
             $saver = $this->saver($uri);
             $saver->save($data);
         } catch (\Exception $e) {
-            $this->output->writeln("<cyan>{$e->getMessage()}</cyan>");
+            Show::error($e->getMessage());
         }
     }
 

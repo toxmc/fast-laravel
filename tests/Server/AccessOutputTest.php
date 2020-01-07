@@ -25,14 +25,7 @@ class AccessOutputTest extends TestCase
 
     public function setUp()
     {
-        $this->output = new Output();
         $this->access = new AccessOutput($this->output);
-    }
-
-    public function testOutput()
-    {
-        $output = $this->callVariable($this->access, 'output');
-        $this->assertTrue($output instanceof Output);
     }
 
     public function testStyle()

@@ -2,12 +2,35 @@
 
 namespace FastLaravel\Http\Output;
 
-
 /**
  * 输出信息
+ * @method int info(String $messages, $quit = false)
+ * @method int note(String $messages, $quit = false)
+ * @method int notice(String $messages, $quit = false)
+ * @method int success(String $messages, $quit = false)
+ * @method int primary(String $messages, $quit = false)
+ * @method int warning(String $messages, $quit = false)
+ * @method int danger(String $messages, $quit = false)
+ * @method int error(String $messages, $quit = false)
  */
 class Output implements OutputInterface
 {
+    /**
+     * @var array
+     */
+    private  $blockMethods = [
+        // method => style
+        'info'        => 'info',
+        'note'        => 'note',
+        'notice'      => 'notice',
+        'success'     => 'success',
+        'primary'     => 'primary',
+        'warning'     => 'warning',
+        'danger'      => 'danger',
+        'error'       => 'error',
+        'magenta'     => 'magenta',
+    ];
+
     /**
      * 间隙字符
      */
@@ -65,10 +88,11 @@ class Output implements OutputInterface
     /**
      * @param string $text
      * @param string $tag
+     * @param bool $quit
      */
-    public function colored(string $text, string $tag = 'info')
+    public function colored(string $text, string $tag = 'info', $quit=false)
     {
-        $this->writeln(\sprintf('<%s>%s</%s>', $tag, $text, $tag));
+        $this->writeln(\sprintf('<%s>%s</%s>', $tag, $text, $tag), true, $quit);
     }
 
     /**
@@ -137,5 +161,27 @@ class Output implements OutputInterface
         }
 
         return $max;
+    }
+
+    /**
+     * @param string $method
+     * @param array $args
+     * @return int
+     * @throws \Exception
+     */
+    public function __call($method, array $args = [])
+    {
+        $msg = (string)($args[0] ?? "");
+        $quit = (bool)($args[1] ?? false);
+        if (isset($this->blockMethods[$method])) {
+            $style = $this->blockMethods[$method];
+            return $this->colored($msg, $style, $quit);
+        }
+
+        if (method_exists(Output::class, $method)) {
+            return Output::$method(...$args);
+        }
+
+        throw new \Exception("Call a not exists method: $method of the " . static::class);
     }
 }
