@@ -482,7 +482,7 @@ class Manager
     {
         if ($this->container->make('config')->get('swoole_http.sandbox_mode', true)) {
             // disable and recycle sandbox resource
-            $this->sandbox->disable();
+            is_object($this->sandbox) && $this->sandbox->disable();
         }
         $this->app->make('context.debug')->reset();
         $this->memoryLeakCheck();
