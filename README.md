@@ -147,7 +147,7 @@ fast-laravel-monitor             RUNNING   pid 29146, uptime 3:03:36
 * `hot_reload_type`： 热重载类型，支持 `inotify` 和 `tick`
     * `inotify` 依赖 `inotify PHP` 扩展
     * `tick` 是利用 `swoole` 定时器，定时检测文件是否变化，进而进行 `reload` 操作
-* `hot_reload_paths`： 监控的文件变更目录。只要属于目录类的文件，发送变动，就会进行 `reload`
+* `hot_reload_paths`： 监控的文件变更目录。只要属于目录内的文件，发生变动，就会进行 `reload`
 
 ```
     'server'    => [
