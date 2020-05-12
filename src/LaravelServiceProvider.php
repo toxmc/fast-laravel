@@ -16,7 +16,7 @@ class LaravelServiceProvider extends ServiceProvider
     protected $defer = false;
 
     /**
-     * Boot the service provider.
+     * Boot the service provider. Perform post-registration booting of services.
      *
      * @return void
      */

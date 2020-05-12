@@ -9,6 +9,12 @@ use Illuminate\Events\Dispatcher;
 use Illuminate\Contracts\Queue\Factory as QueueFactoryContract;
 use FastLaravel\Http\Server\Manager;
 
+/**
+ * fast-laravel 自带命令行工具控制器
+ *
+ * Class HttpController
+ * @package FastLaravel\Http\Commands
+ */
 class HttpController extends Controller
 {
     /**

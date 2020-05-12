@@ -6,6 +6,12 @@ use Illuminate\Console\Command;
 use FastLaravel\Http\Facade\Show;
 use Swoole\Process;
 
+/**
+ * laravel artisan 命令控制器
+ *
+ * Class HttpServerCommand
+ * @package FastLaravel\Http\Commands
+ */
 class HttpServerCommand extends Command
 {
     /**
