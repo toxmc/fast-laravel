@@ -6,7 +6,6 @@ use Swoole\Process;
 use Inhere\Console\Controller;
 use Illuminate\Config\Repository;
 use Illuminate\Events\Dispatcher;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Contracts\Queue\Factory as QueueFactoryContract;
 use FastLaravel\Http\Server\Manager;
 
