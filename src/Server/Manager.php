@@ -13,6 +13,7 @@ use FastLaravel\Http\Tracker\Tracker;
 use FastLaravel\Http\Process\HotReload;
 use FastLaravel\Http\Database\ConnectionResolver;
 use FastLaravel\Http\Facade\Show;
+use FastLaravel\Http\Server\Event;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 
@@ -264,7 +265,7 @@ class Manager
      */
     public function onStart($server)
     {
-        $this->container->make('events')->dispatch('start', func_get_args());
+        $this->container->make('events')->dispatch(Event::START, func_get_args());
         $this->setProcessName('master process');
         $this->createPidFile();
         if (isTesting()) {
@@ -282,7 +283,7 @@ class Manager
      */
     public function onManagerStart($server)
     {
-        $this->container->make('events')->dispatch('managerStart', func_get_args());
+        $this->container->make('events')->dispatch(Event::MANAGER_START, func_get_args());
         $this->setProcessName('manager process');
     }
 
@@ -290,11 +291,12 @@ class Manager
      * "onWorkerStart" callback.
      *
      * @param HttpServer $server
+     * @param int $workerId
      * @throws
      */
-    public function onWorkerStart($server)
+    public function onWorkerStart($server, $workerId)
     {
-        $this->container->make('events')->dispatch('workerStart', func_get_args());
+        $this->container->make('events')->dispatch(Event::WORKER_START, func_get_args());
         $this->clearCache();
 
         // init laravel app in task workers
@@ -417,23 +419,36 @@ class Manager
 
     /**
      * Set onFinish callback.
+     * @param HttpServer $server
+     * @param int $taskId
+     * @param string $data
+     * @throws
      */
-    public function onFinish(HttpServer $server, $taskId, $data)
+    public function onFinish($server, $taskId, $data)
     {
+        $this->container->make('events')->dispatch(Event::FINISH, func_get_args());
     }
 
     /**
      * Set onWorkerStop callback.
+     *
+     * @param HttpServer $server
+     * @param int $workerId
+     * @throws
      */
-    public function onWorkerStop()
+    public function onWorkerStop($server, $workerId)
     {
+        $this->container->make('events')->dispatch(Event::WORKER_STOP, func_get_args());
     }
 
     /**
      * Set onShutdown callback.
+     * @param HttpServer $server
+     * @throws
      */
-    public function onShutdown()
+    public function onShutdown($server)
     {
+        $this->container->make('events')->dispatch(Event::SHUTDOWN, func_get_args());
         $this->removePidFile();
     }
 

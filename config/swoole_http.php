@@ -1,6 +1,7 @@
 <?php
 
 use Swoole\Table;
+use FastLaravel\Http\Server\Event;
 
 return [
     /*
@@ -176,6 +177,23 @@ return [
     */
     'providers' => [
         Illuminate\Pagination\PaginationServiceProvider::class,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | The event listener mappings for the application.
+    | event => listener
+    |
+    | @see: class FastLaravel\Http\Server\Event
+    |--------------------------------------------------------------------------
+    */
+    'listens' => [
+        // Event::START => [
+        //     'App\Listeners\StartListener',
+        // ],
+        // Event::WORKER_START => [
+        //     'App\Listeners\WorkerStartListener',
+        // ]
     ],
 
     /*

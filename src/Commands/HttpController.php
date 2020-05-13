@@ -6,6 +6,7 @@ use Swoole\Process;
 use Inhere\Console\Controller;
 use Illuminate\Config\Repository;
 use Illuminate\Events\Dispatcher;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Contracts\Queue\Factory as QueueFactoryContract;
 use FastLaravel\Http\Server\Manager;
 
@@ -122,11 +123,21 @@ class HttpController extends Controller
             'app'         => $this->config('app'),
             'swoole_http' => $this->config('server')
         ]));
-        $this->laravelApp->singleton('events', function ($app) {
-            return (new Dispatcher($app))->setQueueResolver(function () use ($app) {
+
+        // 注册swoole回调监听事件
+        $listens = $this->config('server')['listens'] ?? [];
+        $this->laravelApp->singleton('events', function ($app) use($listens) {
+            $event = (new Dispatcher($app))->setQueueResolver(function () use ($app) {
                 return $app->make(QueueFactoryContract::class);
             });
+            foreach ($listens as $eventName => $listeners) {
+                foreach ($listeners as $listener) {
+                    $event->listen($eventName, $listener);
+                }
+            }
+            return $event;
         });
+
         $this->output->table($this->getInfos(false), 'fast laravel http info.');
         (new Manager($this->laravelApp, 'laravel'))->start();
     }

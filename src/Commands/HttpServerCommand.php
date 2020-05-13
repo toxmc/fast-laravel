@@ -118,10 +118,15 @@ class HttpServerCommand extends Command
         $basePath = base_path();
         $configPath = $basePath . '/config/swoole_http.php';
         $taskMiddlewarePath = $basePath . '/app/Http/Middleware/TaskWorker.php';
+        $startListener = $basePath . '/app/Listeners/StartListener.php';
+        $workerStartListener = $basePath . '/app/Listeners/WorkerStartListener.php';
+
         $todoList = [
             ['from' => realpath(__DIR__ . '/../../config/swoole_http.php'), 'to' => $configPath, 'mode' => 0644],
             ['from' => realpath(__DIR__ . '/../../fast'), 'to' => $basePath . '/fast', 'mode' => 0755, 'link' => true],
             ['from' => realpath(__DIR__ . '/../Middleware/TaskWorker.php'), 'to' => $taskMiddlewarePath, 'mode' => 0755, 'link' => true],
+            ['from' => realpath(__DIR__ . '/../Listeners/StartListener.php'), 'to' => $startListener, 'mode' => 0755, 'link' => true],
+            ['from' => realpath(__DIR__ . '/../Listeners/WorkerStartListener.php'), 'to' => $workerStartListener, 'mode' => 0755, 'link' => true],
         ];
 
         foreach ($todoList as $id => $todo) {
