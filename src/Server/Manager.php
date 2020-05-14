@@ -466,27 +466,41 @@ class Manager
         $uri = $illuminateRequest->getRequestUri();
         $blackList = ['php', 'htaccess', 'config'];
         $extension = substr(strrchr($uri, '.'), 1);
-        if ($extension && in_array($extension, $blackList)) {
-            return;
+        if (!$extension || ($extension && in_array($extension, $blackList))) {
+            return false;
         }
 
         $publicPath = $this->container->make('config')->get('swoole_http.server.public_path', base_path('public'));
         $filename = $publicPath . $uri;
 
-        if (! is_file($filename) || filesize($filename) === 0) {
-            return;
+        $mime = "text/html";
+        if (!$isFile = file_exists($filename)) {
+            $swooleResponse->status(404);
+        } else {
+            $swooleResponse->status(200);
+            $mime = mime_content_type($filename);
+            if ($extension === 'js') {
+                $mime = 'text/javascript';
+            } elseif ($extension === 'css') {
+                $mime = 'text/css';
+            }
         }
 
-        $swooleResponse->status(200);
-        $mime = mime_content_type($filename);
-        if ($extension === 'js') {
-            $mime = 'text/javascript';
-        } elseif ($extension === 'css') {
-            $mime = 'text/css';
-        }
         $swooleResponse->header('Content-Type', $mime);
-        $swooleResponse->sendfile($filename);
-
+        if ($isFile) {
+            if (filesize($filename)) {
+                $swooleResponse->sendfile($filename);
+            } else {
+                $name = basename($filename);
+                $swooleResponse->Header("Content-Transfer-Encoding", "binary");
+                $swooleResponse->Header("Accept-Ranges", "bytes");
+                $swooleResponse->Header("Content-Length", 0);
+                $swooleResponse->Header("Content-Disposition", "attachment; filename={$name}");
+                $swooleResponse->end();
+            }
+        } else {
+            $swooleResponse->end("404 not found...");
+        }
         return true;
     }
 
