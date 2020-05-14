@@ -63,9 +63,9 @@ class HttpController extends Controller
     /**
      * laravel container app
      *
-     * @var null
+     * @var \Illuminate\Container\Container
      */
-    protected $laravelApp = null;
+    protected $laravelApp;
 
     /**
      * 执行控制台命令入口
