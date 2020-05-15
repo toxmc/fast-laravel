@@ -9,6 +9,10 @@ ENV COMPOSER_ALLOW_SUPERUSER 1
 # install laravel
 RUN composer create-project --prefer-dist laravel/laravel:5.5  abtest -vvv
 
+# 如果镜像过慢的情况可以注释上面语句，指定国内阿里云的源。
+# RUN composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/ && \
+# composer create-project --prefer-dist laravel/laravel:5.5  abtest -vvv
+
 # install laravel-swoole
 RUN cd abtest && composer require toxmc/fast-laravel -vvv
 

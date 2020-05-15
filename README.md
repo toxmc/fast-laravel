@@ -44,11 +44,11 @@ docker exec -it `docker ps -q` /bin/bash
 Running 30s test @ http://127.0.0.1:9100/api/test/info
   8 threads and 32 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency     7.66ms   14.23ms 312.91ms   93.79%
-    Req/Sec   775.52    122.16     1.86k    72.42%
-  185354 requests in 30.06s, 41.72MB read
-Requests/sec:   6165.69
-Transfer/sec:      1.39MB
+    Latency     6.89ms   14.42ms 318.44ms   94.69%
+    Req/Sec     0.97k   233.68     2.33k    74.63%
+  232532 requests in 30.09s, 52.34MB read
+Requests/sec:   7727.54
+Transfer/sec:      1.74MB
 ```
 
 
