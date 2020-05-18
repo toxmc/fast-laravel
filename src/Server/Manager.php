@@ -90,6 +90,13 @@ class Manager
     protected $tracker;
 
     /**
+     * 内存限制 0为关闭
+     * @var int
+     */
+    protected $taskMemoryLimit = 0;
+    protected $workerMemoryLimit = 0;
+
+    /**
      * Server events.
      *
      * @var array
@@ -323,14 +330,17 @@ class Manager
         $this->container->make('events')->dispatch(Event::WORKER_START, func_get_args());
         $this->clearCache();
 
+        $config = $this->container->make('config');
         // init laravel app in task workers
         if ($server->taskworker) {
+            $this->taskMemoryLimit = $config->get('swoole_http.server.task_memory_limit');
+
             $this->setProcessName('task');
             $this->createTaskApplication();
             $this->setLaravelApp();
             $this->bindToLaravelApp();
         } else {
-            $config = $this->container->make('config');
+            $this->workerMemoryLimit = $config->get('swoole_http.server.worker_memory_limit');
             $this->handleStatic = $config->get('swoole_http.handle_static_files', true);
             $this->publicPath = $config->get('swoole_http.server.public_path', base_path('public'));
             $this->enableAccessLog = $config->get('swoole_http.server.enable_access_log', false);
@@ -762,11 +772,7 @@ class Manager
      */
     protected function memoryLeakCheck()
     {
-        if (isTaskWorkerStatus()) {
-            $limit = $this->container->make('config')->get('swoole_http.server.task_memory_limit');
-        } else {
-            $limit = $this->container->make('config')->get('swoole_http.server.worker_memory_limit');
-        }
+        $limit = isTaskWorkerStatus() ? $this->taskMemoryLimit : $this->workerMemoryLimit;
         if ($limit) {
             $memory = memory_get_usage(true);
             if ($memory > $limit) {
