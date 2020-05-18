@@ -70,6 +70,16 @@ class Manager
     protected $sandbox;
 
     /**
+     * @var
+     */
+    protected $sandboxMode;
+
+    /**
+     * @var bool
+     */
+    protected $enableAccessLog = false;
+
+    /**
      * @var AccessOutput
      */
     protected $accessOutput;
@@ -89,6 +99,20 @@ class Manager
         'bufferFull', 'bufferEmpty', 'task', 'finish', 'pipeMessage',
         'workerError', 'managerStart', 'managerStop', 'request',
     ];
+
+    /**
+     * 是否处理静态文件
+     *
+     * @var bool
+     */
+    protected $handleStatic = false;
+
+    /**
+     * 静态文件目录
+     *
+     * @var
+     */
+    protected $publicPath;
 
     /**
      * HTTP server manager constructor.
@@ -306,6 +330,12 @@ class Manager
             $this->setLaravelApp();
             $this->bindToLaravelApp();
         } else {
+            $config = $this->container->make('config');
+            $this->handleStatic = $config->get('swoole_http.handle_static_files', true);
+            $this->publicPath = $config->get('swoole_http.server.public_path', base_path('public'));
+            $this->enableAccessLog = $config->get('swoole_http.server.enable_access_log', false);
+            $this->sandboxMode = $config->get('swoole_http.sandbox_mode', true);
+
             $this->setProcessName('worker');
             $this->createApplication();
             $this->setLaravelApp();
@@ -330,8 +360,7 @@ class Manager
 
         try {
             // handle static file request first
-            $handleStatic = $this->container->make('config')->get('swoole_http.handle_static_files', true);
-            if ($handleStatic && $this->handleStaticRequest($illuminateRequest, $swooleResponse)) {
+            if ($this->handleStatic && $this->handleStaticRequest($illuminateRequest, $swooleResponse)) {
                 return;
             }
 
@@ -352,7 +381,7 @@ class Manager
             }
         } finally {
             // request's access log
-            if ($this->container->make('config')->get('swoole_http.server.enable_access_log', false)) {
+            if ($this->enableAccessLog) {
                 $this->accessOutput->log($illuminateRequest, $illuminateResponse ?? null);
             }
             // Reset on every request.
@@ -470,8 +499,7 @@ class Manager
             return false;
         }
 
-        $publicPath = $this->container->make('config')->get('swoole_http.server.public_path', base_path('public'));
-        $filename = $publicPath . $uri;
+        $filename = $this->publicPath . $uri;
 
         $mime = "text/html";
         if (!$isFile = file_exists($filename)) {
@@ -509,7 +537,7 @@ class Manager
      */
     protected function resetOnRequest()
     {
-        if ($this->container->make('config')->get('swoole_http.sandbox_mode', true)) {
+        if ($this->sandboxMode) {
             // disable and recycle sandbox resource
             is_object($this->sandbox) && $this->sandbox->disable();
         }
@@ -565,7 +593,7 @@ class Manager
      */
     protected function getFastApplication($illuminateRequest)
     {
-        if ($this->container->make('config')->get('swoole_http.sandbox_mode', true)) {
+        if ($this->sandboxMode) {
             // set current request to sandbox and enable sandbox
             $this->sandbox->setRequest($illuminateRequest);
             $this->sandbox->enable();
@@ -581,7 +609,7 @@ class Manager
     protected function setSandbox()
     {
         // set application to sandbox environment
-        if ($this->container->make('config')->get('swoole_http.sandbox_mode', true)) {
+        if ($this->sandboxMode) {
             $this->sandbox = Sandbox::make($this->getApplication());
         }
     }

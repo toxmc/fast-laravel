@@ -38,6 +38,8 @@ class Tracker
 
     protected $tideways = false;
 
+    protected $profilerFilterPath;
+
     /**
      * Make a Tracker.
      * @return Tracker
@@ -56,6 +58,7 @@ class Tracker
     private function __construct()
     {
         $this->enable = (bool) config('swoole_http.tracker.enable');
+        $this->profilerFilterPath = config('swoole_http.tracker.profiler.filter_path');
 
         $this->tideways = extension_loaded('tideways');
         $this->tideways_xhprof = extension_loaded('tideways_xhprof');
@@ -95,9 +98,8 @@ class Tracker
         }
 
         // filter path
-        $filterPath = config('swoole_http.tracker.profiler.filter_path');
         $path = $illuminateRequest->getPathInfo();
-        if (is_array($filterPath) && in_array($path, $filterPath)) {
+        if (is_array($this->profilerFilterPath) && in_array($path, $this->profilerFilterPath)) {
             Show::error("filter path:{$path}");
             $ret = false;
         }
