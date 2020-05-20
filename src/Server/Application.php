@@ -17,7 +17,7 @@ class Application
     /**
      * load laravel Application.
      *
-     * @var \Illuminate\Container\Container
+     * @var Container
      */
 
     protected static $loadApplication = null;
@@ -38,12 +38,12 @@ class Application
     /**
      * Laravel Application.
      *
-     * @var \Illuminate\Container\Container
+     * @var Container
      */
     protected $application;
 
     /**
-     * @var \Illuminate\Contracts\Http\Kernel
+     * @var Kernel
      */
     protected $kernel;
 
@@ -57,6 +57,16 @@ class Application
         'db', 'db.factory', 'cache', 'cache.store', 'config', 'cookie',
         'encrypter', 'hash', 'router', 'translator', 'url', 'log'
     ];
+
+    /**
+     * @var bool
+     */
+    protected $enableCoroutine = false;
+
+    /**
+     * @var bool
+     */
+    protected $obOutput = false;
 
     /**
      * Make an application.
@@ -91,11 +101,14 @@ class Application
     {
         $application = $this->getApplication();
         $application->bootstrapWith($this->getBootstrappers());
+        $this->enableCoroutine = $application->make('config')->get('swoole_http.enable_coroutine', false);
+        $this->obOutput = $application->make('config')->get('swoole_http.ob_output', true);
+
         $this->preResolveInstances($application);
     }
 
     /**
-     * @return \Illuminate\Container\Container
+     * @return Container
      */
     public function getApplication()
     {
@@ -108,7 +121,7 @@ class Application
     /**
      * Load application.
      *
-     * @return \Illuminate\Contracts\Foundation\Application
+     * @return Container
      */
     protected function loadApplication()
     {
@@ -119,8 +132,8 @@ class Application
     }
 
     /**
+     * @return Kernel
      * @throws
-     * @return \Illuminate\Contracts\Http\Kernel
      */
     public function kernel()
     {
@@ -142,18 +155,18 @@ class Application
     /**
      * Run framework.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param Request $request
      * @return SymfonyResponse
      * @throws
      */
     public function handle(Request $request)
     {
         // 检测是否开启runtime::enableCoroutine
-        if ($this->application['config']->get('swoole_http.enable_coroutine', false)) {
+        if ($this->enableCoroutine) {
             \Swoole\Runtime::enableCoroutine();
         }
         // 检测是否开启ob_output
-        $this->application['config']->get('swoole_http.ob_output', true) && ob_start();
+        $this->obOutput && ob_start();
         $response = $this->kernel()->handle($request);
 
         // 处理debug信息
