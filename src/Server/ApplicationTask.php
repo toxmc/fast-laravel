@@ -5,6 +5,7 @@ namespace FastLaravel\Http\Server;
 use Illuminate\Http\Request;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Http\Kernel;
+use Laravel\Lumen\Console\Kernel as LumenKernel;
 use Illuminate\Support\Facades\Facade;
 use FastLaravel\Http\Context\TaskRequest;
 use FastLaravel\Http\Task\TaskExecutor;
@@ -81,7 +82,7 @@ class ApplicationTask
     {
         $application = $this->getApplication();
 
-        if ($this->framework === 'laravel') {
+        if ($this->isFramework('laravel')) {
             $bootstrappers = $this->getBootstrappers();
             $application->bootstrapWith($bootstrappers);
         } elseif (is_null(Facade::getFacadeApplication())) {
@@ -120,7 +121,11 @@ class ApplicationTask
     public function getKernel()
     {
         if (! $this->kernel instanceof Kernel) {
-            $this->kernel = $this->getApplication()->make(Kernel::class);
+            if ($this->isFramework('laravel')) {
+                $this->kernel = $this->getApplication()->make(Kernel::class);
+            } else {
+                $this->kernel = $this->getApplication()->make(LumenKernel::class);
+            }
             // clean worker middleware，and bind TaskWorker middleware.
             $closure = function () {
                 $this->middleware = [];
@@ -199,8 +204,8 @@ class ApplicationTask
     {
         $framework = strtolower($framework);
 
-        if (! in_array($framework, ['laravel'])) {
-            throw new \Exception(sprintf('Not support framework "%s".', $this->framework));
+        if (! in_array($framework, ['laravel', 'lumen'])) {
+            throw new \Exception(sprintf('Not support framework "%s".', $framework));
         }
 
         $this->framework = $framework;
@@ -255,6 +260,16 @@ class ApplicationTask
     }
 
     /**
+     * 判断是否是框架
+     * @param string $name
+     * @return bool
+     */
+    protected function isFramework(string $name)
+    {
+        return $this->getFramework() === $name;
+    }
+
+    /**
      * Clone laravel app and kernel while being cloned.
      */
     public function __clone()
@@ -263,7 +278,7 @@ class ApplicationTask
 
         $this->application = $application;
 
-        if ($this->framework === 'laravel') {
+        if ($this->isFramework('laravel')) {
             $this->rebindKernelContainer($this->getKernel());
         }
     }

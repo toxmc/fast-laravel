@@ -6,10 +6,12 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Http\Kernel;
+use Laravel\Lumen\Console\Kernel as LumenKernel;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class Application
@@ -100,7 +102,9 @@ class Application
     protected function bootstrap()
     {
         $application = $this->getApplication();
-        $application->bootstrapWith($this->getBootstrappers());
+        if ($this->isFramework('laravel')) {
+            $application->bootstrapWith($this->getBootstrappers());
+        }
         $this->enableCoroutine = $application->make('config')->get('swoole_http.enable_coroutine', false);
         $this->obOutput = $application->make('config')->get('swoole_http.ob_output', true);
 
@@ -138,7 +142,12 @@ class Application
     public function kernel()
     {
         if (! $this->kernel instanceof Kernel) {
-            $this->kernel = $this->getApplication()->make(Kernel::class);
+            if ($this->isFramework('laravel')) {
+                $this->kernel = $this->getApplication()->make(Kernel::class);
+            } else {
+
+                $this->kernel = $this->getApplication()->make(LumenKernel::class);
+            }
         }
 
         return $this->kernel;
@@ -167,7 +176,11 @@ class Application
         }
         // 检测是否开启ob_output
         $this->obOutput && ob_start();
-        $response = $this->kernel()->handle($request);
+        if ($this->isFramework('laravel')) {
+            $response = $this->kernel()->handle($request);
+        } else {
+            $response = $this->getApplication()->dispatch($request);
+        }
 
         // 处理debug信息
         $debug = $request->get('debug_print', false);
@@ -250,8 +263,8 @@ class Application
     {
         $framework = strtolower($framework);
 
-        if (! in_array($framework, ['laravel'])) {
-            throw new \Exception(sprintf('Not support framework "%s".', $this->framework));
+        if (! in_array($framework, ['laravel', 'lumen'])) {
+            throw new \Exception(sprintf('Not support framework "%s".', $framework));
         }
 
         $this->framework = $framework;
@@ -275,7 +288,9 @@ class Application
      */
     public function terminate(Request $request, $response)
     {
-        $this->kernel()->terminate($request, $response);
+        if ($this->isFramework('laravel')) {
+            $this->kernel()->terminate($request, $response);
+        }
     }
 
     /**
@@ -290,5 +305,15 @@ class Application
                 $application->make($resolve);
             }
         }
+    }
+
+    /**
+     * 判断是否是框架
+     * @param string $name
+     * @return bool
+     */
+    protected function isFramework(string $name)
+    {
+        return $this->getFramework() === $name;
     }
 }

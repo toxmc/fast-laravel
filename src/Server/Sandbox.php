@@ -6,6 +6,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Http\Request;
 use Illuminate\Container\Container;
 use FastLaravel\Http\Server\Application;
+use Laravel\Lumen\Application as LumenApplication;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ServiceProvider;
 
@@ -36,6 +37,8 @@ class Sandbox
      */
     protected $providers = [];
 
+    protected $framework;
+
     /**
      * Make a sandbox.
      *
@@ -43,20 +46,26 @@ class Sandbox
      *
      * @return Sandbox
      */
-    public static function make(Application $application)
+    public static function make(Application $application, $framework='laravel')
     {
-        return new static($application);
+        return new static($application, $framework);
     }
 
     /**
      * Sandbox constructor.
      * @param \FastLaravel\Http\Server\Application
      */
-    public function __construct(Application $application)
+    public function __construct(Application $application, $framework)
     {
+        $this->framework = $framework;
         $this->setApplication($application);
         $this->setInitialConfig();
         $this->setInitialProviders();
+    }
+
+    public function getFramework()
+    {
+        return $this->framework;
     }
 
     /**
@@ -338,7 +347,11 @@ class Sandbox
     protected function setInstance($application)
     {
         $application->instance('app', $application);
-        $application->instance(Container::class, $application);
+        if ($this->isFramework('lumen')) {
+            $application->instance(LumenApplication::class, $application);
+        } else {
+            $application->instance(Container::class, $application);
+        }
 
         Container::setInstance($application);
         Facade::clearResolvedInstances();

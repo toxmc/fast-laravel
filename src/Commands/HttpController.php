@@ -137,8 +137,13 @@ class HttpController extends Controller
             return $event;
         });
 
+        $versionInfo = $this->config('laravel')['version'];
+        $framework = 'laravel';
+        if (strpos(strtolower($versionInfo), 'lumen') !== false) {
+            $framework = 'lumen';
+        }
         $this->output->table($this->getInfos(false), 'fast laravel http info.');
-        (new Manager($this->laravelApp, 'laravel'))->start();
+        (new Manager($this->laravelApp, $framework))->start();
     }
 
     /**
@@ -239,31 +244,31 @@ class HttpController extends Controller
     {
         $pid = $this->getPid();
         $isRunning = $this->isRunning($pid);
-        $appName = $this->config('app')['name'];
-        $host = $this->config('server')['server']['host'];
-        $port = $this->config('server')['server']['port'];
-        $reactorNum = $this->config('server')['server']['options']['reactor_num'];
-        $workerNum = $this->config('server')['server']['options']['worker_num'];
-        $taskWorkerNum = $this->config('server')['server']['options']['task_worker_num'];
-        $sandboxMode = $this->config('server')['sandbox_mode'] ?? true;
-        $logFile = $this->config('server')['server']['options']['log_file'];
+        $appName = (string)$this->config('app')['name'];
+        $host = (string)$this->config('server')['server']['host'];
+        $port = (string)$this->config('server')['server']['port'];
+        $reactorNum = (string)$this->config('server')['server']['options']['reactor_num'];
+        $workerNum = (string)$this->config('server')['server']['options']['worker_num'];
+        $taskWorkerNum = (string)$this->config('server')['server']['options']['task_worker_num'];
+        $sandboxMode = (string)$this->config('server')['sandbox_mode'] ?? true;
+        $logFile = (string)$this->config('server')['server']['options']['log_file'];
         $data = [
-            ['id' => 1,'name' => 'App Name','value' => $appName],
-            ['id' => 1,'name' => 'PHP Version','value' => phpversion()],
-            ['id' => 2,'name' => 'Swoole Version','value' => swoole_version()],
-            ['id' => 3,'name' => 'Laravel Version','value' => $this->config('laravel')['version']],
-            ['id' => 4,'name' => 'Listen IP','value' => $host],
-            ['id' => 5,'name' => 'Listen Port','value' => $port],
-            ['id' => 6,'name' => 'Reactor Num','value' => $reactorNum],
-            ['id' => 7,'name' => 'Worker Num','value' => $workerNum],
-            ['id' => 8,'name' => 'Task Worker Num','value' => $taskWorkerNum],
-            ['id' => 9,'name' => 'Sandbox Mode','value' => $sandboxMode ? 'On' : 'Off'],
-            ['id' => 10,'name' => 'Log Path','value' => $logFile],
+            ['id' => '1','name' => 'App Name','value' => $appName],
+            ['id' => '2','name' => 'PHP Version','value' => phpversion()],
+            ['id' => '3','name' => 'Swoole Version','value' => swoole_version()],
+            ['id' => '4','name' => 'Laravel Version','value' => $this->config('laravel')['version']],
+            ['id' => '5','name' => 'Listen IP','value' => $host],
+            ['id' => '6','name' => 'Listen Port','value' => $port],
+            ['id' => '7','name' => 'Reactor Num','value' => $reactorNum],
+            ['id' => '8','name' => 'Worker Num','value' => $workerNum],
+            ['id' => '9','name' => 'Task Worker Num','value' => $taskWorkerNum],
+            ['id' => '10','name' => 'Sandbox Mode','value' => $sandboxMode ? 'On' : 'Off'],
+            ['id' => '11','name' => 'Log Path','value' => $logFile],
         ];
 
         if ($printStatus) {
-            $data[] = ['id' => 11,'name' => 'Server Status','value' => $isRunning ? 'Online' : 'Offline'];
-            $data[] = ['id' => 12,'name' => 'PID','value' => $isRunning ? $pid : 'None'];
+            $data[] = ['id' => '12','name' => 'Server Status','value' => $isRunning ? 'Online' : 'Offline'];
+            $data[] = ['id' => '13','name' => 'PID','value' => $isRunning ? $pid : 'None'];
         }
         return $data;
     }

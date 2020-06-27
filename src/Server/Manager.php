@@ -620,7 +620,7 @@ class Manager
     {
         // set application to sandbox environment
         if ($this->sandboxMode) {
-            $this->sandbox = Sandbox::make($this->getApplication());
+            $this->sandbox = Sandbox::make($this->getApplication(), $this->getFramework());
         }
     }
 
@@ -665,7 +665,7 @@ class Manager
         $pool = $this->container->config['swoole_http']['pool'] ?? [];
         if ($pool) {
             $this->app->instance('pool.db', new ConnectionResolver(
-                $this->app->config['database']['connections'],
+                $this->app->config['database']['connections'] ?? [],
                 $pool,
                 $this->app->config['database']['default']
             ));
