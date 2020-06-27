@@ -38,7 +38,7 @@ class ApplicationTest extends TestCase
 
     /**
      * @expectedException Exception
-     * @expectedExceptionMessage Not support framework "laravel".
+     * @expectedExceptionMessage Not support framework "lartasaa".
      */
     public function testSetFrameworkException()
     {

@@ -172,6 +172,7 @@ class ManagerTest extends TestCase
     public function testSetProcessName()
     {
         if (PHP_OS === 'Darwin') {
+            $this->assertTrue(true);
             return;
         }
 
