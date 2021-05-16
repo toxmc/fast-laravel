@@ -107,6 +107,7 @@ abstract class BaseProcess
             });
         }
         $this->run($this->swooleProcess);
+        swoole_event_wait();
     }
 
     /**
